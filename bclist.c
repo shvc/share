@@ -69,7 +69,7 @@ struct bclist* bclist_delete(struct bclist* h, int data)
 	return h;
 }
 
-struct bclist* bclist_free(struct bclist* h)
+struct bclist* bclist_release(struct bclist* h)
 {
 	struct bclist* p = h;
 	do {
@@ -105,6 +105,8 @@ int main(int argc, char** argv)
 
 	bclist_delete(h, 2);
 	bclist_add(h, 5);
+	bclist_print(h);
+	bclist_release(h);
 	bclist_print(h);
 
 	return ret;

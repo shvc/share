@@ -64,6 +64,42 @@ int list_free(struct node *pnode)
 	return 0;
 }
 
+struct node* list_delete(struct node **head, struct node *p)
+{
+#if 0
+	struct node *prev = NULL;
+	struct node *walk = *head;
+
+	while( walk != p) {
+		prev = walk;
+		walk = walk->next;
+	}
+
+	if( walk == *head ) {
+		*head = walk->next;
+		free(walk);
+	}
+	else {
+		prev->next = walk->next;
+		free(walk);
+	}
+
+#else
+	struct node **walk = head;
+
+	while( *walk != p && *walk ) {
+		walk = &((*walk)->next);
+	}
+	
+	if(*walk) {
+		*walk = p->next;
+		free(p);
+	}
+
+#endif
+	return *head;
+}
+
 int main(int argc, char* argv[])
 {
 	int len;
@@ -74,7 +110,13 @@ int main(int argc, char* argv[])
 
 	pnode = list_init(len);
 	list_print(pnode);
+	list_delete(&pnode, pnode);
+	list_delete(&pnode, pnode->next);
+	list_print(pnode);
+
 	list_print(list_reverse(pnode));
+
+
 	list_free(pnode);
 }
 
