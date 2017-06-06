@@ -50,16 +50,17 @@ struct node* list_reverse(struct node *pnode)
 	return q;
 }
 
-int list_free(struct node *pnode)
+int list_free(struct node **pnode)
 {
-	struct node *p, *q;
-	p = pnode;
+	struct node **walk = pnode;
+	struct node *current = NULL;
 
-	while(p) {
-		q = p->next;
-		free(p);
-		p = q;
+	while( *walk ) {
+		current = *walk;
+		walk = &(*walk)->next;
+		free(current);
 	}
+	*pnode = NULL;
 
 	return 0;
 }
@@ -118,6 +119,8 @@ int main(int argc, char* argv[])
 	list_print(list_reverse(pnode));
 
 
-	list_free(pnode);
+	list_free(&pnode->next->next);
+	list_free(&pnode->next);
+	list_free(&pnode);
 }
 
