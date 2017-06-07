@@ -19,6 +19,25 @@
                char _f[20-2*sizeof(long)-sizeof(int)];
            };
 */
+/*
+ Returns information on overall system statistics.  
+extern int sysinfo (struct sysinfo *__info)
+
+ Return number of configured processors.
+extern int get_nprocs_conf (void)
+
+ Return number of available processors.
+extern int get_nprocs (void)
+
+
+ Return number of physical pages of memory in the system.
+extern long int get_phys_pages (void)
+
+ Return number of available physical pages of memory in the system.
+extern long int get_avphys_pages (void)
+
+*/
+
 
 void print_sysinfo(struct sysinfo *info)
 {
