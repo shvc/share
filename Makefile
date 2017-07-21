@@ -1,12 +1,16 @@
+#
+# date: Fri Jul 21 23:34:36 CST 2017
+#
+
+
+binarys := $(patsubst %.c, %, $(wildcard *.c))
 
 .PHONY: all
-all: readline copy sort
+all: $(binarys)
 
-readline: readline.c
+%: %.c
 	$(CC) -o $@ $<
 
-copy: copy.c
-	$(CC) -o $@ $<
-
-sort: sort.c
-	$(CC) -o $@ $<
+.PHONY: clean
+clean:
+	rm -f $(binarys)
