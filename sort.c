@@ -4,13 +4,13 @@ void output(int* a, size_t len)
 {
 	int i;
 	for(i=0; i<len; i++) {
-		printf("%2d ", a[i]);
+		printf("%2i ", a[i]);
 	}
 	puts("");
 	return;
 }
 
-int* bubble_sort(int* a, size_t len)
+void bubble_sort(int* a, size_t len)
 {
 	int i,j;
 	for(i=1; i<len; i++) {
@@ -22,10 +22,10 @@ int* bubble_sort(int* a, size_t len)
 			}
 		}
 	}
-	return a;
+	return ;
 }
 
-int* optimized_bubble_sort(int* a, size_t len)
+void optimized_bubble_sort(int* a, size_t len)
 {
 	int i,j;
 	int swapped;
@@ -43,10 +43,10 @@ int* optimized_bubble_sort(int* a, size_t len)
 			break;
 		}
 	}
-	return a;
+	return ;
 }
 
-int* select_sort(int* a, size_t len)
+void select_sort(int* a, size_t len)
 {
 	int i,j;
 	for(i=0; i<len-1; i++) {
@@ -58,10 +58,10 @@ int* select_sort(int* a, size_t len)
 			}
 		}
 	}
-	return a;
+	return ;
 }
 
-int* optimized_select_sort(int* a, size_t len)
+void optimized_select_sort(int* a, size_t len)
 {
 	int i,j;
 	int min;
@@ -78,15 +78,37 @@ int* optimized_select_sort(int* a, size_t len)
 			a[i]   = a[i] ^ a[min];
 		}
 	}
-	return a;
+	return ;
 }
 
+void insert_sort(int* arry, size_t len)
+{
+	int i,j;
+	int temp;
+
+	for(i=1; i<len; i++) {
+		temp = arry[i];
+		for(j=i-1; j>=0; j--) {
+			if(arry[j] > temp) {
+				arry[j+1] = arry[j];
+			} 
+			else {
+				break;
+			}
+		}
+		arry[j+1] = temp;
+	}
+
+	return ;
+}
 
 int main(int argc, char** argv)
 {
-	int arry[] = {2,9,4,7,5,3,6,1,8,0};
+	int arry[] = {11,12,13,14,10,2,9,4,7,5,3,6,1,8,0};
 	size_t len = sizeof(arry)/sizeof(arry[0]);
 
+	output(arry, len);
+	insert_sort(arry, len);
 	output(arry, len);
 	optimized_select_sort(arry, len);
 	output(arry, len);
