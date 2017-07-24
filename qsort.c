@@ -11,6 +11,30 @@ void output(int* arry, size_t len)
 	return ;
 }
 
+void quicksort_iterative(int array[], unsigned len)
+{
+	int pivot;
+	unsigned right, left = 0, stack[64], pos = 0, seed = rand();
+	for ( ; ; ) {                                                          /* outer loop */
+		for (; left+1 < len; len++) {                          /* sort left to len-1 */
+			if (pos == 64) len = stack[pos = 0];       /* stack overflow, reset */
+			pivot = array[left+seed%(len-left)];       /* pick random pivot */
+			seed = seed*69069+1;                     /* next pseudorandom number */
+			stack[pos++] = len;                         /* sort right part later */
+			for (right = left-1; ; ) {      /* inner loop: partitioning */
+				while (array[++right] < pivot);  /* look for greater element */
+				while (pivot < array[--len]);    /* look for smaller element */
+				if (right >= len) break;           /* partition point found? */
+				array[right] = array[right] ^ array[len];             /* the only swap */
+				array[len]   = array[right] ^ array[len];             /* the only swap */
+				array[right] = array[right] ^ array[len];             /* the only swap */
+			}                            /* partitioned, continue left part */
+		}
+		if (pos == 0) break;                               /* stack empty? */
+		left = len;                             /* left to right is sorted */
+		len = stack[--pos];                      /* get next range to sort */
+	} 
+}
 
 void quick_sort_1(int* arry, int low, int high)
 {
@@ -59,7 +83,8 @@ int main(int argc, char** argv)
 
 	output(arry, len);
 
-	quick_sort_2(arry, 0, len);
+	//quick_sort_2(arry, 0, len);
+	quicksort_iterative(arry, len);
 
 	output(arry, len);
 
