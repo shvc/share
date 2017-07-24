@@ -104,7 +104,37 @@ void insert_sort(int* arry, size_t len)
 	return ;
 }
 
-void quick_sort(int* arry, int low, int high)
+
+/* set pivot as low */
+void quick_sort_0(int* arry, int low, int high)
+{
+	int i,j,pivot;
+        if( low < high ) {
+                i = low;
+                j = high;
+                pivot = arry[i];
+                while( i < j ) {
+                        while( arry[j] > pivot && j > i) j--;
+			if( i < j)
+                        arry[i++] = arry[j];
+                        while( arry[i] < pivot && i < j) i++;
+			if( i < j)
+                        arry[j--] = arry[i];
+                }
+                arry[i] = pivot;
+                quick_sort_1(arry, low, i-1);
+                quick_sort_1(arry, j+1, high);
+        }
+	return ;
+}
+
+void quick_sort_1(int* arry, int low, int high)
+{
+	return ;
+}
+
+/* set pivot as high */
+void quick_sort_2(int* arry, int low, int high)
 {
 	int i,j;
 	int pivot;
@@ -114,15 +144,42 @@ void quick_sort(int* arry, int low, int high)
 		pivot = arry[j];
 		while( i<j ) {
 			while( i<j && arry[i] < pivot ) i++;
+			if( i<j )
 			arry[j--] = arry[i];
-			while( j<j && arry[j] > pivot ) j--;
+			while( i<j && arry[j] > pivot ) j--;
+			if( i<j )
 			arry[i++] = arry[j];
 		}
 		arry[j] = pivot;
-		quick_sort(arry, low, i-1);
-		quick_sort(arry, j-1, high);
+		quick_sort_2(arry, low, i-1);
+		quick_sort_2(arry, j+1, high);
 	}
 
+}
+
+void quicksort_iterative(int array[], unsigned len)
+{
+        int pivot;
+        unsigned right, left = 0, stack[64], pos = 0, seed = rand();
+        for ( ; ; ) {                                                          /* outer loop */
+                for (; left+1 < len; len++) {                          /* sort left to len-1 */
+                        if (pos == 64) len = stack[pos = 0];       /* stack overflow, reset */
+                        pivot = array[left+seed%(len-left)];       /* pick random pivot */
+                        seed = seed*69069+1;                     /* next pseudorandom number */
+                        stack[pos++] = len;                         /* sort right part later */
+                        for (right = left-1; ; ) {      /* inner loop: partitioning */
+                                while (array[++right] < pivot);  /* look for greater element */
+                                while (pivot < array[--len]);    /* look for smaller element */
+                                if (right >= len) break;           /* partition point found? */
+                                array[right] = array[right] ^ array[len];             /* the only swap */
+                                array[len]   = array[right] ^ array[len];             /* the only swap */
+                                array[right] = array[right] ^ array[len];             /* the only swap */
+                        }                            /* partitioned, continue left part */
+                }
+                if (pos == 0) break;                               /* stack empty? */
+                left = len;                             /* left to right is sorted */
+                len = stack[--pos];                      /* get next range to sort */
+        }
 }
 
 int generate_random(size_t len)
@@ -145,9 +202,10 @@ int main(int argc, char** argv)
 	optimized_bubble_sort(arry, len);
 	output(arry, len);
 	bubble_sort(arry, len);
-	output(arry, len);
 
-	quick_sort(arry, 0, len);
+	puts("before quick_sort -------------------------------");
+	output(arry, len);
+	quick_sort_2(arry, 0, len-1);
 	output(arry, len);
 
 	return 0;

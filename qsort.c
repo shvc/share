@@ -83,8 +83,8 @@ int main(int argc, char** argv)
 
 	output(arry, len);
 
-	//quick_sort_2(arry, 0, len);
-	quicksort_iterative(arry, len);
+	//quick_sort_2(arry, 0, len-1);
+	quicksort_iterative(arry, len-1);
 
 	output(arry, len);
 
