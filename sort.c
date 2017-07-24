@@ -122,8 +122,8 @@ void quick_sort_0(int* arry, int low, int high)
                         arry[j--] = arry[i];
                 }
                 arry[i] = pivot;
-                quick_sort_1(arry, low, i-1);
-                quick_sort_1(arry, j+1, high);
+                quick_sort_0(arry, low, i-1);
+                quick_sort_0(arry, j+1, high);
         }
 	return ;
 }
