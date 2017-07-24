@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <time.h>
+#include <stdlib.h>
 
 void output(int* a, size_t len)
 {
@@ -102,6 +104,34 @@ void insert_sort(int* arry, size_t len)
 	return ;
 }
 
+void quick_sort(int* arry, int low, int high)
+{
+	int i,j;
+	int pivot;
+	if ( low < high ) {
+		i = low;
+		j = high;
+		pivot = arry[j];
+		while( i<j ) {
+			while( i<j && arry[i] < pivot ) i++;
+			arry[j--] = arry[i];
+			while( j<j && arry[j] > pivot ) j--;
+			arry[i++] = arry[j];
+		}
+		arry[j] = pivot;
+		quick_sort(arry, low, i-1);
+		quick_sort(arry, j-1, high);
+	}
+
+}
+
+int generate_random(size_t len)
+{
+
+	srandom(time(NULL));
+	return random()%len;
+}
+
 int main(int argc, char** argv)
 {
 	int arry[] = {11,12,13,14,10,2,9,4,7,5,3,6,1,8,0};
@@ -115,6 +145,9 @@ int main(int argc, char** argv)
 	optimized_bubble_sort(arry, len);
 	output(arry, len);
 	bubble_sort(arry, len);
+	output(arry, len);
+
+	quick_sort(arry, 0, len);
 	output(arry, len);
 
 	return 0;
