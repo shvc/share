@@ -1,5 +1,7 @@
 #include <stdio.h>
-
+/*
+ * What I want to do?
+ */
 
 int max_substr_len(const char* str, size_t len)
 {
@@ -21,6 +23,9 @@ int main(int argc, char** argv)
 	char str[] = "abcdefgegcsgcasse";
 
 	ret = max_substr_len(str, sizeof(str)/sizeof(str[0]));
+	
+	printf("str: %s\n", str);
+	printf("ret: %d\n", ret);
 
 
 	return ret;
