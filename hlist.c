@@ -22,6 +22,7 @@ void hlist_delete_entry(struct hlist_node *entry)
 	if(next) {
 		next->pprev = pprev;
 	}
+	free(entry);
 }
 
 
