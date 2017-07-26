@@ -13,6 +13,7 @@ int main()
 
 	printf("i=%d\n", i);
 	printf("j=%d\n", j);
+	printf("k=%d\n", TEST(++a));
 
 
 	return 0;
