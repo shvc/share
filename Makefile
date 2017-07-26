@@ -8,8 +8,10 @@ binarys := $(patsubst %.c, %, $(wildcard *.c))
 .PHONY: all
 all: $(binarys)
 
+flags := -g
+
 %: %.c
-	$(CC) -o $@ $<
+	$(CC) $(flags) -o $@ $<
 
 .PHONY: clean
 clean:
