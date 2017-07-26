@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 struct hlist_head {
 	struct hlist_node *head;
