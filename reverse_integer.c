@@ -1,5 +1,11 @@
 #include <stdio.h>
+/*
+ * https://leetcode.com/problems/reverse-integer/tabs/description
+ */
 
+/*
+ * not in consideration of integer overflow
+ */
 int reverse(int x)
 {
 	int y = 0;
@@ -11,24 +17,21 @@ int reverse(int x)
 }
 
 
-int reversDigits(int x)
+/*
+ * in consideration of integer overflow
+ */
+int reverseDigits(int x)
 {
-	int num = x>0?x:-x; 
-	int prev_rev_num = 0, rev_num = 0, curr_digit;
-	while (num != 0)
-	{
-		curr_digit = num%10;
+	int rev_num=0, prv_num=0;
+	int num = x>0?x:-x;
 
-		rev_num = (rev_num*10) + curr_digit;
-
-		if ((rev_num - curr_digit)/10 != prev_rev_num)
-		{
-			/* overflow */
+	while(num) {
+		rev_num = rev_num*10 + num%10;
+		if( (rev_num-num%10)/10 != prv_num) {
 			return 0;
 		}
-
-		prev_rev_num = rev_num;
-		num = num/10;
+		prv_num = rev_num;
+		num /= 10;
 	}
 
 	return x>0? rev_num : -rev_num;
@@ -40,12 +43,15 @@ int main(int argc, char** argv)
 	printf("sizeof(int)   = %d\n", sizeof(int));
 	printf("sizeof(short) = %d\n", sizeof(short));
 	printf("%d, %d\n", x, reverse(x));
+	printf("%d, %d\n", x, reverseDigits(x));
 
 	x = -123;
 	printf("%d, %d\n", x, reverse(x));
+	printf("%d, %d\n", x, reverseDigits(x));
 
 	x = -123456789;
 	printf("%d, %d\n", x, reverse(x));
+	printf("%d, %d\n", x, reverseDigits(x));
 
 	return 0;
 }
