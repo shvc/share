@@ -17,7 +17,22 @@ void list_output(struct node* head)
 		puts("");
 	}
 }
-	
+
+void list_print(struct node *head)
+{
+	struct node *ptr = head;
+	printf("[ ");
+
+	if(head != NULL) {
+		while(ptr->next != ptr) {     
+			printf("%d ",ptr->data);
+			ptr = ptr->next;
+		}
+	}
+
+	printf(" ]\n");
+}
+
 struct node* list_init()
 {
 	struct node *head = NULL;
@@ -54,7 +69,7 @@ struct node* list_add_node(struct node* head, int data)
 		p->next = head->next;
 		head->next = p;
 	}
-	
+
 	return head;
 }
 
@@ -73,7 +88,7 @@ struct node* list_add_nodes(struct node* head, size_t cnt)
 			head->next = p;
 		}
 	}
-	
+
 	return head;
 }
 
@@ -121,7 +136,7 @@ struct node* list_reverse(struct node* pnode)
 struct node* list_delete_node(struct node** head, struct node* pnode)
 {
 	struct node **walk = head;
-	
+
 	while(*walk && *walk != pnode) {
 		walk = &((*walk)->next);
 	}
