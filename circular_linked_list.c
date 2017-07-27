@@ -23,6 +23,7 @@ int length()
 	if(head == NULL) {
 		return 0;
 	}
+	length = 1;
 
 	current = head->next;
 
@@ -43,9 +44,8 @@ void insertFirst(int data)
 		head = link;
 		head->next = head;
 	} else {
-		link->next = head;
-
-		head = link;
+		link->next = head->next;
+		head->next = link;
 	}    
 }
 
@@ -57,9 +57,10 @@ struct node * deleteFirst()
 	if(head->next == head) {  
 		head = NULL;
 		return tempLink;
-	}     
+	}
 
-	head = head->next;
+	tempLink = head->next;
+	head->next = tempLink->next;
 
 	return tempLink;
 }
@@ -72,7 +73,7 @@ void printList()
 
 	if(head != NULL) {
 
-		while(ptr->next != ptr) {     
+		while(ptr->next != head) {     
 			printf("%d ", ptr->data);
 			ptr = ptr->next;
 		}
@@ -83,18 +84,15 @@ void printList()
 
 int main(int argc, char** argv)
 {
-	printf("length0: %d\n", length());
+	printf("length: %d\n", length());
 	insertFirst(1);
-	printf("length1: %d\n", length());
 	insertFirst(2);
-	printf("length2: %d\n", length());
 	insertFirst(3);
-	printf("length3: %d\n", length());
 	insertFirst(4);
-	printf("length4: %d\n", length());
 	insertFirst(5);
 	insertFirst(6); 
 	insertFirst(7); 
+	printf("length: %d\n", length());
 
 	printf("Original List: "); 
 
