@@ -7,7 +7,7 @@ struct node {
 };
 
 struct stack {
-	struct node *head;
+	struct node *top;
 };
 
 
@@ -19,9 +19,9 @@ int push(struct stack *stack, int data)
 	pnode = malloc(sizeof(struct node));
 	
 	pnode->data = data;
-	pnode->next = stack->head;
+	pnode->next = stack->top;
 
-	stack->head = pnode;
+	stack->top = pnode;
 
 	return 0;
 }
@@ -29,11 +29,11 @@ int push(struct stack *stack, int data)
 int pop(struct stack *stack)
 {
 	int ret = 0;
-	struct node *pnode = stack->head;
+	struct node *pnode = stack->top;
 
 	if(pnode) {
 		ret = pnode->data;
-		stack->head = pnode->next;
+		stack->top = pnode->next;
 		free(pnode);
 	}
 	else {
@@ -43,12 +43,28 @@ int pop(struct stack *stack)
 	return ret;
 }
 
+int peek(struct stack *stack)
+{
+	if(stack && stack->top) {
+		return stack->top->data;
+	}
+	else {
+		return 0;
+	}
+}
+
+int is_empty(struct stack *stack)
+{
+
+	return stack->top==NULL?1:0;
+}
+
 int main(int argc, char** argv)
 {
 	int x;
 
 	struct stack stack;
-	stack.head = NULL;
+	stack.top = NULL;
 
 	push(&stack, 1);
 	push(&stack, 2);
