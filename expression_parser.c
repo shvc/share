@@ -1,20 +1,25 @@
 #include<stdio.h> 
 #include<string.h> 
 
+#define STACK_SIZE 32
+
 //char stack
-char stack[25]; 
+char stack[STACK_SIZE]; 
 int top = -1; 
 
-void push(char item) {
+void push(char item)
+{
 	stack[++top] = item; 
 } 
 
-char pop() {
+char pop()
+{
 	return stack[top--]; 
 } 
 
 //returns precedence of operators
-int precedence(char symbol) {
+int precedence(char symbol)
+{
 
 	switch(symbol) {
 		case '+': 
@@ -37,7 +42,8 @@ int precedence(char symbol) {
 } 
 
 //check whether the symbol is operator?
-int isOperator(char symbol) {
+int isOperator(char symbol)
+{
 
 	switch(symbol) {
 		case '+': 
@@ -55,7 +61,8 @@ int isOperator(char symbol) {
 } 
 
 //converts infix expression to postfix
-void convert(char infix[],char postfix[]) {
+void convert(char infix[],char postfix[]) 
+{
 	int i,symbol,j = 0; 
 	stack[++top] = '#'; 
 
@@ -65,10 +72,12 @@ void convert(char infix[],char postfix[]) {
 		if(isOperator(symbol) == 0) {
 			postfix[j] = symbol; 
 			j++; 
-		} else {
+		}
+		else {
 			if(symbol == '(') {
 				push(symbol); 
-			}else {
+			}
+			else {
 				if(symbol == ')') {
 
 					while(stack[top] != '(') {
@@ -77,16 +86,17 @@ void convert(char infix[],char postfix[]) {
 					} 
 
 					pop();//pop out (. 
-				} else {
+				}
+				else {
 					if(precedence(symbol)>precedence(stack[top])) {
 						push(symbol); 
-					}else {
+					}
+					else {
 
 						while(precedence(symbol)<=precedence(stack[top])) {
 							postfix[j] = pop(); 
 							j++; 
 						} 
-
 						push(symbol); 
 					}
 				}
@@ -103,15 +113,21 @@ void convert(char infix[],char postfix[]) {
 } 
 
 //int stack
-int stack_int[25]; 
+int stack_int[STACK_SIZE]; 
 int top_int = -1; 
 
-void push_int(int item) {
-	stack_int[++top_int] = item; 
+void push_int(int item)
+{
+	if(top_int < STACK_SIZE) {
+		stack_int[++top_int] = item; 
+	}
 } 
 
-char pop_int() {
-	return stack_int[top_int--]; 
+char pop_int()
+{
+	if(top_int >= 0) {
+		return stack_int[top_int--]; 
+	}
 } 
 
 //evaluates postfix expression
@@ -121,10 +137,10 @@ int evaluate(char *postfix){
 	int i = 0,operand1,operand2;
 
 	while( (ch = postfix[i++]) != '\0') {
-
 		if(isdigit(ch)) {
 			push_int(ch-'0'); // Push the operand 
-		}else {
+		}
+		else {
 			//Operator,pop two  operands 
 			operand2 = pop_int();
 			operand1 = pop_int();
@@ -145,7 +161,6 @@ int evaluate(char *postfix){
 			}
 		}
 	}
-
 	return stack_int[top_int];
 }
 
@@ -162,4 +177,5 @@ int main(int argc, char** argv)
 	printf("Infix expression is: %s\n" , infix);
 	printf("Postfix expression is: %s\n" , postfix);
 	printf("Evaluated expression is: %d\n" , evaluate(postfix));
-} 
+}
+
