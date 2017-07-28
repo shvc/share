@@ -15,7 +15,7 @@
 char cstack[STACK_SIZE]; 
 int ctop = -1; 
 
-int istack[STACK_SIZE]; 
+float istack[STACK_SIZE]; 
 int itop = -1; 
 
 void cpush(char item)
@@ -28,14 +28,14 @@ char cpop()
 	return cstack[ctop--]; 
 } 
 
-void ipush(int item)
+void fpush(float item)
 {
 	if(itop < STACK_SIZE) {
 		istack[++itop] = item; 
 	}
 }
 
-char ipop()
+float fpop()
 {
 	if(itop >= 0) {
 		return istack[itop--];
@@ -139,36 +139,36 @@ void convert(char infix[],char postfix[])
 }
 
 //evaluates postfix expression
-int evaluate(char *postfix){
+float evaluate(char *postfix){
 
 	char ch;
-	int value = 0;
-	int i = 0,operand1,operand2;
+	float operand1, operand2, value = 0;
+	int i = 0;
 
 	while( (ch = postfix[i++]) != '\0') {
 		if(isdigit(ch)) {
 			value = value*10 + ch - '0';
 		}
 		else if( ch == ' ') {
-			ipush(value);
+			fpush(value);
 			value = 0;
 		}
 		else {
-			operand2 = ipop();
-			operand1 = ipop();
+			operand2 = fpop();
+			operand1 = fpop();
 
 			switch(ch) {
 				case '+':
-					ipush(operand1+operand2);
+					fpush(operand1+operand2);
 					break;
 				case '-':
-					ipush(operand1-operand2);
+					fpush(operand1-operand2);
 					break;
 				case '*':
-					ipush(operand1*operand2);
+					fpush(operand1*operand2);
 					break;
 				case '/':
-					ipush(operand1/operand2);
+					fpush(operand1/operand2);
 					break;
 				default:
 					printf("unkonw operand %c\n", ch);
@@ -190,6 +190,6 @@ int main(int argc, char** argv)
 
 	printf("Infix expression is: %s\n" , infix);
 	printf("Postfix expression is: %s\n" , postfix);
-	printf("Evaluated expression is: %d\n" , evaluate(postfix));
+	printf("Evaluated expression is: %f\n" , evaluate(postfix));
 }
 
