@@ -18,15 +18,30 @@ int ctop = -1;
 int istack[STACK_SIZE]; 
 int itop = -1; 
 
-void push(char item)
+void cpush(char item)
 {
 	cstack[++ctop] = item; 
 } 
 
-char pop()
+char cpop()
 {
 	return cstack[ctop--]; 
 } 
+
+void ipush(int item)
+{
+	if(itop < STACK_SIZE) {
+		istack[++itop] = item; 
+	}
+}
+
+char ipop()
+{
+	if(itop >= 0) {
+		return istack[itop--];
+	}
+}
+
 
 /* returns precedence of operators */
 int precedence(char symbol)
@@ -74,91 +89,86 @@ int isOperator(char symbol)
 /* converts infix expression to postfix */
 void convert(char infix[],char postfix[])
 {
-	int i,symbol,j = 0;
+	int i,j = 0;
 	cstack[++ctop] = '#';
 
 	for(i = 0;i<strlen(infix);i++) {
-		symbol = infix[i]; 
-		if(isOperator(symbol) == 0) {
-			postfix[j] = symbol;
+		if(isdigit(infix[i])) {
+			postfix[j] = infix[i];
 			j++;
 		}
 		else {
-			if(symbol == '(') {
-				push(symbol);
+			if( i!=0 && isdigit(infix[i-1])) {
+				postfix[j] = ' ';
+				j++;
+			}
+			if(infix[i] == '(') {
+				cpush(infix[i]);
 			}
 			else {
-				if(symbol == ')') {
+				if(infix[i] == ')') {
 					while(cstack[ctop] != '(') {
-						postfix[j] = pop();
+						postfix[j] = cpop();
 						j++;
 					}
-					pop();//pop out (. 
+					cpop();//pop out (. 
 				}
 				else {
-					if(precedence(symbol) > precedence(cstack[ctop])) {
-						push(symbol);
+					if(precedence(infix[i]) > precedence(cstack[ctop])) {
+						cpush(infix[i]);
 					}
 					else {
-						while( precedence(symbol) <= precedence(cstack[ctop]) ) {
-							postfix[j] = pop();
+						while( precedence(infix[i]) <= precedence(cstack[ctop]) ) {
+							postfix[j] = cpop();
 							j++;
 						}
-						push(symbol);
+						cpush(infix[i]);
 					}
 				}
 			}
 		}
 	}
 
+	postfix[j++] = ' ';
 	while(cstack[ctop] != '#') {
-		postfix[j] = pop();
+		postfix[j] = cpop();
 		j++;
 	}
 
 	postfix[j]='\0';//null terminate string. 
 }
 
-void push_int(int item)
-{
-	if(itop < STACK_SIZE) {
-		istack[++itop] = item; 
-	}
-}
-
-char pop_int()
-{
-	if(itop >= 0) {
-		return istack[itop--];
-	}
-}
-
 //evaluates postfix expression
 int evaluate(char *postfix){
 
 	char ch;
+	int value = 0;
 	int i = 0,operand1,operand2;
 
 	while( (ch = postfix[i++]) != '\0') {
 		if(isdigit(ch)) {
-			push_int(ch-'0');
+			value = value*10 + ch - '0';
+		}
+		else if( ch == ' ') {
+			ipush(value);
+			value = 0;
 		}
 		else {
-			operand2 = pop_int();
-			operand1 = pop_int();
+			operand2 = ipop();
+			operand1 = ipop();
 
 			switch(ch) {
 				case '+':
-					push_int(operand1+operand2);
+					ipush(operand1+operand2);
 					break;
 				case '-':
-					push_int(operand1-operand2);
+					ipush(operand1-operand2);
 					break;
 				case '*':
-					push_int(operand1*operand2);
+					ipush(operand1*operand2);
 					break;
 				case '/':
-					push_int(operand1/operand2);
+					ipush(operand1/operand2);
 					break;
 				default:
 					printf("unkonw operand %c\n", ch);
