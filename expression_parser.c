@@ -12,21 +12,23 @@
  * Step 6 − pop the stack and perform operation
  */
 
-//char stack
-char stack[STACK_SIZE]; 
-int top = -1; 
+char cstack[STACK_SIZE]; 
+int ctop = -1; 
+
+int istack[STACK_SIZE]; 
+int itop = -1; 
 
 void push(char item)
 {
-	stack[++top] = item; 
+	cstack[++ctop] = item; 
 } 
 
 char pop()
 {
-	return stack[top--]; 
+	return cstack[ctop--]; 
 } 
 
-//returns precedence of operators
+/* returns precedence of operators */
 int precedence(char symbol)
 {
 
@@ -48,9 +50,9 @@ int precedence(char symbol)
 			return 1; 
 			break; 
 	} 
-} 
+}
 
-//check whether the symbol is operator?
+/* check whether the symbol is operator? */
 int isOperator(char symbol)
 {
 
@@ -67,77 +69,69 @@ int isOperator(char symbol)
 		default:
 			return 0; 
 	} 
-} 
+}
 
-//converts infix expression to postfix
-void convert(char infix[],char postfix[]) 
+/* converts infix expression to postfix */
+void convert(char infix[],char postfix[])
 {
-	int i,symbol,j = 0; 
-	stack[++top] = '#'; 
+	int i,symbol,j = 0;
+	cstack[++ctop] = '#';
 
 	for(i = 0;i<strlen(infix);i++) {
 		symbol = infix[i]; 
-
 		if(isOperator(symbol) == 0) {
-			postfix[j] = symbol; 
-			j++; 
+			postfix[j] = symbol;
+			j++;
 		}
 		else {
 			if(symbol == '(') {
-				push(symbol); 
+				push(symbol);
 			}
 			else {
 				if(symbol == ')') {
-
-					while(stack[top] != '(') {
-						postfix[j] = pop(); 
-						j++; 
-					} 
-
+					while(cstack[ctop] != '(') {
+						postfix[j] = pop();
+						j++;
+					}
 					pop();//pop out (. 
 				}
 				else {
-					if(precedence(symbol)>precedence(stack[top])) {
-						push(symbol); 
+					if(precedence(symbol) > precedence(cstack[ctop])) {
+						push(symbol);
 					}
 					else {
-
-						while(precedence(symbol)<=precedence(stack[top])) {
-							postfix[j] = pop(); 
-							j++; 
-						} 
-						push(symbol); 
+						while( precedence(symbol) <= precedence(cstack[ctop]) ) {
+							postfix[j] = pop();
+							j++;
+						}
+						push(symbol);
 					}
 				}
 			}
 		}
 	}
 
-	while(stack[top] != '#') {
-		postfix[j] = pop(); 
-		j++; 
-	} 
+	while(cstack[ctop] != '#') {
+		postfix[j] = pop();
+		j++;
+	}
 
 	postfix[j]='\0';//null terminate string. 
-} 
-
-//int stack
-int stack_int[STACK_SIZE]; 
-int top_int = -1; 
+}
 
 void push_int(int item)
 {
-	if(top_int < STACK_SIZE) {
-		stack_int[++top_int] = item; 
+	if(itop < STACK_SIZE) {
+		istack[++itop] = item; 
 	}
-} 
+}
 
 char pop_int()
 {
-	if(top_int >= 0) {
-		return stack_int[top_int--]; 
+	if(itop >= 0) {
+		return istack[itop--];
 	}
-} 
+}
 
 //evaluates postfix expression
 int evaluate(char *postfix){
@@ -147,10 +141,9 @@ int evaluate(char *postfix){
 
 	while( (ch = postfix[i++]) != '\0') {
 		if(isdigit(ch)) {
-			push_int(ch-'0'); // Push the operand 
+			push_int(ch-'0');
 		}
 		else {
-			//Operator,pop two  operands 
 			operand2 = pop_int();
 			operand1 = pop_int();
 
@@ -167,10 +160,12 @@ int evaluate(char *postfix){
 				case '/':
 					push_int(operand1/operand2);
 					break;
+				default:
+					printf("unkonw operand %c\n", ch);
 			}
 		}
 	}
-	return stack_int[top_int];
+	return istack[itop];
 }
 
 
@@ -181,7 +176,7 @@ int main(int argc, char** argv)
 	if(argc > 1) {
 		strcpy(infix, argv[1]);
 	}
-	convert(infix,postfix); 
+	convert(infix, postfix); 
 
 	printf("Infix expression is: %s\n" , infix);
 	printf("Postfix expression is: %s\n" , postfix);
