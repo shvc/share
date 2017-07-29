@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define ARRAY_LEN 10
-
 void init(int* array, size_t len)
 {
 	int i;
@@ -47,24 +45,24 @@ void quicksort_iterative(int array[], unsigned len)
 	} 
 }
 
-void quick_sort_1(int* array, int low, int high)
+void quick_sort_1(int* array, int len)
 {
 	int i,j,pivot;
-	if( low < high ) {
-		i = low;
-		j = high;
-		pivot = array[i];
-		while( i < j ) {
-			while( array[j] > pivot && j > i) j--;
-			array[i++] = array[j];
-			while( array[i] < pivot && i < j) i++;
-			array[j--] = array[i];
-		}
-		array[i] = pivot;
-		quick_sort_1(array, low, i-1);
-		quick_sort_1(array, j+1, high);
+	if( len < 2 ) {
+		return ;
 	}
-	return ;
+	pivot = array[len/2];
+	for(i=0, j=len-1; ; i++, j--) {
+		while( array[i] < pivot ) i++;
+		while( array[j] > pivot ) j--;
+		if (i >= j) break;
+		array[i] = array[i] ^ array [j];
+		array[j] = array[i] ^ array [j];
+		array[i] = array[i] ^ array [j];
+	}
+
+	quick_sort_1(array, i);
+	quick_sort_1(array+i, len-i);
 }
 
 void quick_sort_2(int* array, int low, int high)
@@ -94,13 +92,14 @@ void quick_sort_2(int* array, int low, int high)
 
 int main(int argc, char** argv)
 {
-	int array[ARRAY_LEN] = {2,9,4,7,5,3,6,1,8,0};
+	int array[] = {2,9,4,7,5,3,6,1,8,0};
 	size_t len = sizeof(array)/sizeof(array[0]);
 
-	init(array, len);
+//	init(array, len);
 	output(array, len);
 
-	quick_sort_2(array, 0, len-1);
+	//quick_sort_2(array, 0, len-1);
+	quick_sort_1(array, len);
 	output(array, len);
 	quicksort_iterative(array, len);
 
