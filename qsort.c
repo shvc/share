@@ -34,15 +34,15 @@ void quicksort_iterative(int array[], unsigned len)
 				while (array[++right] < pivot);  /* look for greater element */
 				while (pivot < array[--len]);    /* look for smaller element */
 				if (right >= len) break;           /* partition point found? */
-				array[right] = array[right] ^ array[len];             /* the only swap */
-				array[len]   = array[right] ^ array[len];             /* the only swap */
-				array[right] = array[right] ^ array[len];             /* the only swap */
+				array[right] = array[right] ^ array[len];
+				array[len]   = array[right] ^ array[len];
+				array[right] = array[right] ^ array[len];
 			}                            /* partitioned, continue left part */
 		}
 		if (pos == 0) break;                               /* stack empty? */
 		left = len;                             /* left to right is sorted */
 		len = stack[--pos];                      /* get next range to sort */
-	} 
+	}
 }
 
 void quick_sort_1(int* array, int len)
@@ -95,7 +95,7 @@ int main(int argc, char** argv)
 	int array[] = {2,9,4,7,5,3,6,1,8,0};
 	size_t len = sizeof(array)/sizeof(array[0]);
 
-//	init(array, len);
+	//	init(array, len);
 	output(array, len);
 
 	//quick_sort_2(array, 0, len-1);
