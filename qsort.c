@@ -1,10 +1,21 @@
 #include <stdio.h>
+#include <stdlib.h>
 
-void output(int* arry, size_t len)
+#define ARRAY_LEN 10
+
+void init(int* array, size_t len)
+{
+	int i;
+	for(i=0; i<len; i++) {
+		array[i] = rand()%100;
+	}
+}
+
+void output(int* array, size_t len)
 {
 	int i = 0;
 	for(i=0; i<len; i++) {
-		printf("%2i ", arry[i]);
+		printf("%2i ", array[i]);
 	}
 
 	puts("");
@@ -36,57 +47,65 @@ void quicksort_iterative(int array[], unsigned len)
 	} 
 }
 
-void quick_sort_1(int* arry, int low, int high)
+void quick_sort_1(int* array, int low, int high)
 {
 	int i,j,pivot;
 	if( low < high ) {
 		i = low;
 		j = high;
-		pivot = arry[i];
+		pivot = array[i];
 		while( i < j ) {
-			while( arry[j] > pivot && j > i) j--;
-			arry[i++] = arry[j];
-			while( arry[i] < pivot && i < j) i++;
-			arry[j--] = arry[i];
+			while( array[j] > pivot && j > i) j--;
+			array[i++] = array[j];
+			while( array[i] < pivot && i < j) i++;
+			array[j--] = array[i];
 		}
-		arry[i] = pivot;
-		quick_sort_1(arry, low, i-1);
-		quick_sort_1(arry, j+1, high);
+		array[i] = pivot;
+		quick_sort_1(array, low, i-1);
+		quick_sort_1(array, j+1, high);
 	}
 	return ;
 }
 
-void quick_sort_2(int* arry, int low, int high)
+void quick_sort_2(int* array, int low, int high)
 {
-	int i,j,pivot;
+	int i,j,k, pivot;
 	if(low < high) {
 		i = low;
 		j = high;
-		pivot = arry[j/2];
+		k = (low+high)/2;
+		pivot = array[k];
 		while( i < j ) {
-			while( i<j && arry[i] < pivot ) i++;
-			arry[j/2] = arry[i];
-			while( i<j && arry[j] > pivot ) j--;
-			arry[i] = arry[j];
+			while( i<j && array[i] < pivot ) i++;
+			if(i<j)
+				array[k] = array[i];
+			while( i<j && array[j] > pivot ) j--;
+			if(i<j) {
+				array[i] = array[j];
+				k = j;
+			}
 		}
-		arry[j] = pivot;
-		quick_sort_2(arry, low, i-1);
-		quick_sort_2(arry, j+1, high);
+		array[j] = pivot;
+		quick_sort_2(array, low, i-1);
+		quick_sort_2(array, j+1, high);
 	}
 	return ;
 }
 
 int main(int argc, char** argv)
 {
-	int arry[] = {2,9,4,7,5,3,6,1,8,0};
-	size_t len = sizeof(arry)/sizeof(arry[0]);
+	int array[ARRAY_LEN] = {2,9,4,7,5,3,6,1,8,0};
+	size_t len = sizeof(array)/sizeof(array[0]);
 
-	output(arry, len);
+	init(array, len);
+	output(array, len);
 
-	//quick_sort_2(arry, 0, len-1);
-	quicksort_iterative(arry, len-1);
+	quick_sort_2(array, 0, len-1);
+	output(array, len);
+	quicksort_iterative(array, len);
 
-	output(arry, len);
+	output(array, len);
 
-	return ;
+	return 0;
 }
+
