@@ -6,6 +6,16 @@ int queue[QUEUE_SIZE];
 int front = 0;
 int rear = 0;
 
+int isfull()
+{
+	int ret = 0;
+	if( (rear+1)%QUEUE_SIZE == front) {
+		ret = 1;
+	}
+
+	return ret;
+}
+
 void enqueue(int x)
 {
 	if( isfull() ) {
@@ -42,15 +52,6 @@ int peek()
 	return ret;
 }
 
-int isfull()
-{
-	int ret = 0;
-	if( (rear+1)%QUEUE_SIZE == front) {
-		ret = 1;
-	}
-
-	return ret;
-}
 
 int size()
 {
