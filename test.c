@@ -46,8 +46,16 @@ int func2(long x)
 	return 1==ret;
 }
 
+void test(int *p)
+{
+	p = malloc(sizeof(int)*9);
+
+	return ;
+}
+
 int main(int argc, char* argv[])
 {
+	int *p, array[10];
 	long d;
 	if(argc == 2) {
 		d = atol(argv[1]);
@@ -65,6 +73,10 @@ int main(int argc, char* argv[])
 
 	printf("strlen: %lu\n", strlen("abc\101\0fghijk\0"));
 	
+	p = malloc(100);
+	test(p);
+
+	array[10] = 9;
 	return 0;
 }
 
