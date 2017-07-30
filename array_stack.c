@@ -43,6 +43,11 @@ int peek()
 	return ret;
 }
 
+int size()
+{
+	return top+1;
+}
+
 int main(int argc, char** argv)
 {
 	int ret = 0;
