@@ -1,5 +1,6 @@
-#include<stdio.h> 
-#include<string.h> 
+#include <stdio.h> 
+#include <ctype.h>
+#include <string.h> 
 
 #define STACK_SIZE 32
 
@@ -15,8 +16,8 @@
 char cstack[STACK_SIZE]; 
 int ctop = -1; 
 
-float istack[STACK_SIZE]; 
-int itop = -1; 
+float fstack[STACK_SIZE]; 
+int ftop = -1; 
 
 void cpush(char item)
 {
@@ -30,41 +31,49 @@ char cpop()
 
 void fpush(float item)
 {
-	if(itop < STACK_SIZE) {
-		istack[++itop] = item; 
+	if(ftop < STACK_SIZE) {
+		fstack[++ftop] = item; 
 	}
 }
 
 float fpop()
 {
-	if(itop >= 0) {
-		return istack[itop--];
+	float ret = 0;
+	if(ftop >= 0) {
+		ret = fstack[ftop--];
 	}
+	else {
+		puts("stack is empty");
+	}
+	return ret;
 }
 
 
 /* returns precedence of operators */
 int precedence(char symbol)
 {
-
+	int retval = 0;
 	switch(symbol) {
 		case '+': 
 		case '-':
-			return 2; 
+			retval = 2; 
 			break; 
 		case '*': 
 		case '/':
-			return 3; 
+			retval = 3; 
 			break; 
 		case '^': 
-			return 4; 
+			retval = 4; 
 			break; 
 		case '(': 
 		case ')': 
 		case '#':
-			return 1; 
+			retval = 1; 
 			break; 
+		default:
+			retval = 0;
 	} 
+	return retval;
 }
 
 /* check whether the symbol is operator? */
@@ -92,7 +101,7 @@ void convert(char infix[],char postfix[])
 	int i,j = 0;
 	cstack[++ctop] = '#';
 
-	for(i = 0;i<strlen(infix);i++) {
+	for( i=0; i<strlen(infix); i++ ) {
 		if(isdigit(infix[i])) {
 			postfix[j] = infix[i];
 			j++;
@@ -111,7 +120,7 @@ void convert(char infix[],char postfix[])
 						postfix[j] = cpop();
 						j++;
 					}
-					cpop();//pop out (. 
+					cpop(); /* pop out (. */
 				}
 				else {
 					if(precedence(infix[i]) > precedence(cstack[ctop])) {
@@ -129,27 +138,27 @@ void convert(char infix[],char postfix[])
 		}
 	}
 
-	postfix[j++] = ' ';
 	while(cstack[ctop] != '#') {
 		postfix[j] = cpop();
 		j++;
 	}
 
-	postfix[j]='\0';//null terminate string. 
+	postfix[j]='\0';
 }
 
-//evaluates postfix expression
-float evaluate(char *postfix){
-
-	char ch;
-	float operand1, operand2, value = 0;
+/* 
+ * evaluates postfix expression
+ */
+float evaluate(char *postfix)
+{
 	int i = 0;
+	float operand1, operand2, value = 0;
 
-	while( (ch = postfix[i++]) != '\0') {
-		if(isdigit(ch)) {
-			value = value*10 + ch - '0';
+	for( i=0; postfix[i] != '\0'; i++) {
+		if(isdigit(postfix[i])) {
+			value = value*10 + postfix[i] - '0';
 		}
-		else if( ch == ' ') {
+		else if( postfix[i] == ' ' && isdigit(postfix[i-1])) {
 			fpush(value);
 			value = 0;
 		}
@@ -157,7 +166,7 @@ float evaluate(char *postfix){
 			operand2 = fpop();
 			operand1 = fpop();
 
-			switch(ch) {
+			switch( postfix[i] ) {
 				case '+':
 					fpush(operand1+operand2);
 					break;
@@ -171,11 +180,11 @@ float evaluate(char *postfix){
 					fpush(operand1/operand2);
 					break;
 				default:
-					printf("unkonw operand %c\n", ch);
+					printf("unkonw operand %c\n", postfix[i]);
 			}
 		}
 	}
-	return istack[itop];
+	return fstack[ftop];
 }
 
 
@@ -188,8 +197,8 @@ int main(int argc, char** argv)
 	}
 	convert(infix, postfix); 
 
-	printf("Infix expression is: %s\n" , infix);
+	printf("Infix expression is  : %s\n" , infix);
 	printf("Postfix expression is: %s\n" , postfix);
-	printf("Evaluated expression is: %f\n" , evaluate(postfix));
+	printf("Evaluation is        : %f\n" , evaluate(postfix));
 }
 
