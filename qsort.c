@@ -1,11 +1,16 @@
+#include <time.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 
-void init(int* array, size_t len)
+#define ARRAY_LEN 32
+
+void init(int* array, size_t len, int round)
 {
 	int i;
+	srandom(time(NULL));
 	for(i=0; i<len; i++) {
-		array[i] = rand()%100;
+		array[i] = random()%round;
 	}
 }
 
@@ -18,6 +23,20 @@ void output(int* array, size_t len)
 
 	puts("");
 	return ;
+}
+
+int validate(int *array, size_t len)
+{
+	int i,j;
+	for(i=0; i<len; i++) {
+		for(j=0; j<i; j++) {
+			if(array[i] < array[j]) {
+				printf("failed, array[%d]=%d < array[%d]=%d\n", i, array[i], j, array[j]);
+				return 1;
+			}
+		}
+	}
+	return 0;
 }
 
 void quicksort_iterative(int array[], unsigned len)
@@ -67,20 +86,18 @@ void quick_sort_1(int* array, int len)
 
 void quick_sort_2(int* array, int low, int high)
 {
-	int i,j,k, pivot;
+	int i, j, pivot;
 	if(low < high) {
 		i = low;
 		j = high;
-		k = (low+high)/2;
-		pivot = array[k];
+		pivot = array[j];
 		while( i < j ) {
 			while( i<j && array[i] < pivot ) i++;
 			if(i<j)
-				array[k] = array[i];
+				array[j] = array[i];
 			while( i<j && array[j] > pivot ) j--;
 			if(i<j) {
 				array[i] = array[j];
-				k = j;
 			}
 		}
 		array[j] = pivot;
@@ -92,18 +109,32 @@ void quick_sort_2(int* array, int low, int high)
 
 int main(int argc, char** argv)
 {
-	int array[] = {2,9,4,7,5,3,6,1,8,0};
+	int array[ARRAY_LEN] = {2,9,4,7,5,3,6,1,8,0};
 	size_t len = sizeof(array)/sizeof(array[0]);
 
-	//	init(array, len);
+	init(array, len, 100);
 	output(array, len);
+	quick_sort_1(array, len);
+	validate(array, len);
+	output(array, len);
+	puts("----------------------------");
+	sleep(1);
 
+	init(array, len, 100);
+	output(array, len);
 	//quick_sort_2(array, 0, len-1);
 	quick_sort_1(array, len);
+	validate(array, len);
+	output(array, len);
+	puts("----------------------------");
+	sleep(1);
+
+	init(array, len, 100);
 	output(array, len);
 	quicksort_iterative(array, len);
-
+	validate(array, len);
 	output(array, len);
+	puts("----------------------------");
 
 	return 0;
 }
