@@ -24,6 +24,15 @@ void output(int* array, size_t len)
 	return ;
 }
 
+void swap(int* x, int *y)
+{
+	if(x != y) {
+		*x = *x ^ *y;
+		*y = *x ^ *y;
+		*x = *x ^ *y;
+	}
+}
+
 int validate(int *array, size_t len)
 {
 	int i,j;
@@ -38,74 +47,91 @@ int validate(int *array, size_t len)
 	return 0;
 }
 
-void quicksort_iterative(int array[], unsigned len)
+int partition(int *array, int l, int h)
 {
 	int pivot;
-	unsigned right, left = 0, stack[64], pos = 0, seed = rand();
-	for ( ; ; ) {                                                          /* outer loop */
-		for (; left+1 < len; len++) {                          /* sort left to len-1 */
-			if (pos == 64) len = stack[pos = 0];       /* stack overflow, reset */
-			pivot = array[left+seed%(len-left)];       /* pick random pivot */
-			seed = seed*69069+1;                     /* next pseudorandom number */
-			stack[pos++] = len;                         /* sort right part later */
-			for (right = left-1; ; ) {      /* inner loop: partitioning */
-				while (array[++right] < pivot);  /* look for greater element */
-				while (pivot < array[--len]);    /* look for smaller element */
-				if (right >= len) break;           /* partition point found? */
-				array[right] = array[right] ^ array[len];
-				array[len]   = array[right] ^ array[len];
-				array[right] = array[right] ^ array[len];
-			}                            /* partitioned, continue left part */
+
+	if( l < h) {
+		pivot = array[(h-l)/2];
+		for( ; ; l++, h--) {
+			while( array[l] < pivot ) l++;
+			while( array[h] > pivot ) h--;
+			if (l >= h) break;
+			swap(array+l, array+h);
 		}
-		if (pos == 0) break;                               /* stack empty? */
-		left = len;                             /* left to right is sorted */
-		len = stack[--pos];                      /* get next range to sort */
 	}
+	return l;
 }
 
-void quick_sort_1(int* array, int len)
+int partition2(int *array, int l, int h)
 {
-	int i,j,pivot;
-	if( len < 2 ) {
-		return ;
-	}
-	pivot = array[len/2];
-	for(i=0, j=len-1; ; i++, j--) {
-		while( array[i] < pivot ) i++;
-		while( array[j] > pivot ) j--;
-		if (i >= j) break;
-		array[i] = array[i] ^ array [j];
-		array[j] = array[i] ^ array [j];
-		array[i] = array[i] ^ array [j];
-	}
+	int i,j;
+	i = l-1;
 
-	quick_sort_1(array, i);
-	quick_sort_1(array+i, len-i);
+	for ( j=l; j<h; j++ ) {
+		if ( array[j] < array[h] ) {
+			i++;
+			swap(array+i, array+j);
+		}
+	}
+	
+	swap(array+i+1, array+h);
+
+	return i+1;
 }
 
-void quick_sort_2(int* array, int low, int high)
+void quicksort_1(int* array, int len)
 {
-	int i, j, pivot;
-	if(low < high) {
-		i = low;
-		j = high;
-		pivot = array[j];
-		while( i < j ) {
-			while( i<j && array[i] < pivot ) i++;
-			if(i<j)
-				array[j] = array[i];
-			while( i<j && array[j] > pivot ) j--;
-			if(i<j) {
-				array[i] = array[j];
-			}
+	int l, h, pivot;
+	if( len > 1 ) {
+		pivot = array[len/2];
+		for(l=0, h=len-1; ; l++, h--) {
+			while( array[l] < pivot ) l++;
+			while( array[h] > pivot ) h--;
+			if (l >= h) break;
+			swap(array+l, array+h);
 		}
-		array[j] = pivot;
-		quick_sort_2(array, low, i-1);
-		quick_sort_2(array, j+1, high);
+		quicksort_1(array, l);
+		quicksort_1(array+l, len-l);
 	}
 	return ;
 }
 
+void quicksort_2(int* array, int low, int high)
+{
+	int k = 0;
+	if(low < high) {
+		k = partition2(array, low, high);
+		quicksort_2(array, low, k-1);
+		quicksort_2(array, k+1, high);
+	}
+	return ;
+}
+
+void quicksort_iterative(int* array, int len)
+{
+	int stack[64];
+	int top = -1;
+	int l = 0, h = len-1, m;
+
+	stack[++top] = l;
+	stack[++top] = h;
+
+	while( top >= 0) {
+		h = stack[top--];
+		l = stack[top--];
+		m = partition2(array, l, h);
+		if ( l < m-1 ) {
+			stack[++top] = l;
+			stack[++top] = m-1;
+		}
+
+		if ( m+1 < h ) {
+			stack[++top] = m+1;
+			stack[++top] = h;
+		}
+	}
+}
 int main(int argc, char** argv)
 {
 	int array[ARRAY_LEN] = {2,9,4,7,5,3,6,1,8,0};
@@ -115,15 +141,14 @@ int main(int argc, char** argv)
 
 	init(array, len, 100);
 	output(array, len);
-	quick_sort_1(array, len);
+	quicksort_1(array, len);
 	validate(array, len);
 	output(array, len);
 	puts("----------------------------");
 
 	init(array, len, 100);
 	output(array, len);
-	//quick_sort_2(array, 0, len-1);
-	quick_sort_1(array, len);
+	quicksort_2(array, 0, len-1);
 	validate(array, len);
 	output(array, len);
 	puts("----------------------------");
