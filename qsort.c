@@ -8,7 +8,6 @@
 void init(int* array, size_t len, int round)
 {
 	int i;
-	srandom(time(NULL));
 	for(i=0; i<len; i++) {
 		array[i] = random()%round;
 	}
@@ -112,13 +111,14 @@ int main(int argc, char** argv)
 	int array[ARRAY_LEN] = {2,9,4,7,5,3,6,1,8,0};
 	size_t len = sizeof(array)/sizeof(array[0]);
 
+	srandom(time(NULL));
+
 	init(array, len, 100);
 	output(array, len);
 	quick_sort_1(array, len);
 	validate(array, len);
 	output(array, len);
 	puts("----------------------------");
-	sleep(1);
 
 	init(array, len, 100);
 	output(array, len);
@@ -127,7 +127,6 @@ int main(int argc, char** argv)
 	validate(array, len);
 	output(array, len);
 	puts("----------------------------");
-	sleep(1);
 
 	init(array, len, 100);
 	output(array, len);
