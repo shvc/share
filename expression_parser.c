@@ -1,5 +1,6 @@
 #include <stdio.h> 
 #include <ctype.h>
+#include <assert.h>
 #include <string.h> 
 
 #define STACK_SIZE 32
@@ -21,18 +22,33 @@ int ftop = -1;
 
 void cpush(char item)
 {
-	cstack[++ctop] = item; 
+	if(ctop < STACK_SIZE) {
+		cstack[++ctop] = item; 
+	}
+	else {
+		puts("stack overflow");
+	}
 } 
 
 char cpop()
 {
-	return cstack[ctop--]; 
+	char ret = 0;
+	if(ctop >= 0) {
+		ret = cstack[ctop--];
+	}
+	else {
+		puts("stack is empty");
+	}
+	return ret;
 } 
 
 void fpush(float item)
 {
 	if(ftop < STACK_SIZE) {
 		fstack[++ftop] = item; 
+	}
+	else {
+		puts("stack overflow");
 	}
 }
 
@@ -67,7 +83,6 @@ int precedence(char symbol)
 			break; 
 		case '(': 
 		case ')': 
-		case '#':
 			retval = 1; 
 			break; 
 		default:
@@ -99,17 +114,14 @@ int isOperator(char symbol)
 void convert(char infix[],char postfix[])
 {
 	int i,j = 0;
-	cstack[++ctop] = '#';
 
-	for( i=0; i<strlen(infix); i++ ) {
+	for( i=0; infix[i]!='\0'; i++ ) {
 		if(isdigit(infix[i])) {
-			postfix[j] = infix[i];
-			j++;
+			postfix[j++] = infix[i];
 		}
 		else {
 			if( i!=0 && isdigit(infix[i-1])) {
-				postfix[j] = ' ';
-				j++;
+				postfix[j++] = ' ';
 			}
 			if(infix[i] == '(') {
 				cpush(infix[i]);
@@ -117,19 +129,17 @@ void convert(char infix[],char postfix[])
 			else {
 				if(infix[i] == ')') {
 					while(cstack[ctop] != '(') {
-						postfix[j] = cpop();
-						j++;
+						postfix[j++] = cpop();
 					}
 					cpop(); /* pop out (. */
 				}
 				else {
-					if(precedence(infix[i]) > precedence(cstack[ctop])) {
+					if(ctop == -1 || precedence(infix[i]) > precedence(cstack[ctop])) {
 						cpush(infix[i]);
 					}
 					else {
 						while( precedence(infix[i]) <= precedence(cstack[ctop]) ) {
-							postfix[j] = cpop();
-							j++;
+							postfix[j++] = cpop();
 						}
 						cpush(infix[i]);
 					}
@@ -137,10 +147,12 @@ void convert(char infix[],char postfix[])
 			}
 		}
 	}
+	if(isdigit(postfix[j-1])) {
+		postfix[j++] = ' ';
+	}
 
-	while(cstack[ctop] != '#') {
-		postfix[j] = cpop();
-		j++;
+	while(ctop != -1) {
+		postfix[j++] = cpop();
 	}
 
 	postfix[j]='\0';
@@ -187,18 +199,41 @@ float evaluate(char *postfix)
 	return fstack[ftop];
 }
 
+void test(char* infix, char* postfix) 
+{
+	strcpy(infix, "2+2-1-1*2/2");
+	convert(infix, postfix);
+	assert(2 == evaluate(postfix));
+
+	strcpy(infix, "(2+2)/2*2-1");
+	convert(infix, postfix);
+	assert(3 == evaluate(postfix));
+
+	strcpy(infix, "2+2/2*2");
+	convert(infix, postfix);
+	assert(4 == evaluate(postfix));
+
+
+	strcpy(infix, "2+2+2*(2-1)");
+	convert(infix, postfix);
+	assert(6 == evaluate(postfix));
+
+}
 
 int main(int argc, char** argv)
 { 
-	char infix[128] = "1*(2+3)";
+	char infix[128];
 	char postfix[256]; 
+
+	test(infix, postfix);
+
 	if(argc > 1) {
 		strcpy(infix, argv[1]);
 	}
 	convert(infix, postfix); 
 
-	printf("Infix expression is  : %s\n" , infix);
-	printf("Postfix expression is: %s\n" , postfix);
-	printf("Evaluation is        : %f\n" , evaluate(postfix));
+	printf("Infix expression is   :[%s]\n" , infix);
+	printf("Postfix expression is :[%s]\n" , postfix);
+	printf("Evaluation is         :[%.2f]\n" , evaluate(postfix));
 }
 
