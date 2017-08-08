@@ -1,27 +1,25 @@
 #include <stdio.h>
+#include <limits.h>
+#include <assert.h>
 
 #define STACK_SIZE 64
 
 int stack[STACK_SIZE];
 int top = -1;
 
-int push(int x)
+void push(int x)
 {
-	int ret = 0;
 	if(top < STACK_SIZE-1) {
 		stack[++top] = x;
 	}
 	else {
 		puts("stack is full");
-		ret = 1;
 	}
-
-	return ret;
 }
 
 int pop()
 {
-	int ret = 0;
+	int ret = INT_MIN;
 	if( top>=0 ) {
 		ret = stack[top--];
 	}
@@ -33,7 +31,7 @@ int pop()
 
 int peek()
 {
-	int ret = 0;
+	int ret = INT_MIN;
 	if(top >= 0) {
 		ret = stack[top];
 	}
@@ -48,10 +46,25 @@ int size()
 	return top+1;
 }
 
+void test()
+{
+        push(1);
+        push(2);
+        assert(2 == pop());
+        assert(1 == pop());
+        assert(INT_MIN == pop());
+        push(3);
+        assert(3 == pop());
+        assert(INT_MIN == pop());
+}
+
+
 int main(int argc, char** argv)
 {
 	int ret = 0;
 	
+	test();
+
 	push(1);
 	push(2);
 	push(3);
