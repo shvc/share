@@ -1,70 +1,88 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
+#include <assert.h>
 
 struct node {
 	int data;
 	struct node* next;
 };
 
-struct stack {
-	struct node *top;
-};
-
-
-int push(struct stack *stack, int data)
+void push(struct node **top, int data)
 {
-	int ret = 0;
-	struct node *pnode = NULL;
-
-	pnode = malloc(sizeof(struct node));
+	struct node *pnode = malloc(sizeof(struct node));
 	
 	pnode->data = data;
-	pnode->next = stack->top;
+	pnode->next = *top;
 
-	stack->top = pnode;
-
-	return 0;
+	*top = pnode;
 }
 
-int pop(struct stack *stack)
+int pop(struct node **top)
 {
-	int ret = 0;
-	struct node *pnode = stack->top;
+	int retval = INT_MIN;
+	struct node *pnode = *top;
 
 	if(pnode) {
-		ret = pnode->data;
-		stack->top = pnode->next;
+		retval = pnode->data;
+		*top = pnode->next;
 		free(pnode);
 	}
 	else {
 		puts("empty stack");
 	}
 
-	return ret;
+	return retval;
 }
 
-int peek(struct stack *stack)
+int peek(struct node *top)
 {
-	if(stack && stack->top) {
-		return stack->top->data;
+	if(top) {
+		return top->data;
 	}
 	else {
-		return 0;
+		return INT_MIN;
 	}
 }
 
-int is_empty(struct stack *stack)
+int is_empty(struct node *top)
 {
 
-	return stack->top==NULL?1:0;
+	return top==NULL?1:0;
+}
+
+void empty(struct node **top)
+{
+	struct node *pnode = *top;
+	struct node *walk = pnode;
+
+	while(pnode) {
+		walk = pnode->next;
+		free(pnode);
+		pnode = walk;
+	}
+	*top = NULL;
+}
+
+void test()
+{
+	struct node* stack = NULL;
+
+	push(&stack, 1);
+	push(&stack, 2);
+	assert(2 == pop(&stack));
+	assert(1 == pop(&stack));
+	assert(INT_MIN == pop(&stack));
+	push(&stack, 3);
+	assert(3 == pop(&stack));
+	assert(INT_MIN == pop(&stack));
 }
 
 int main(int argc, char** argv)
 {
-	int x;
+	struct node* stack = NULL;
 
-	struct stack stack;
-	stack.top = NULL;
+	test();
 
 	push(&stack, 1);
 	push(&stack, 2);
@@ -73,11 +91,7 @@ int main(int argc, char** argv)
 
 	printf("%d\n", pop(&stack));
 	printf("%d\n", pop(&stack));
-	printf("%d\n", pop(&stack));
-	printf("%d\n", pop(&stack));
-	printf("%d\n", pop(&stack));
-	printf("%d\n", pop(&stack));
-	printf("%d\n", pop(&stack));
+	empty(&stack);
 
 	return 0;
 }
