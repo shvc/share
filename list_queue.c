@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 
 struct node {
 	int data;
@@ -41,7 +42,7 @@ int enqueue(struct queue *queue, int data)
 
 int dequeue(struct queue *queue)
 {
-	int ret = 0;
+	int ret = INT_MIN;
 	struct node *pnode = queue->front;
 
 	if(pnode) {
@@ -60,14 +61,22 @@ int dequeue(struct queue *queue)
 	return ret;
 }
 
-int peek(struct queue *queue)
+int front(struct queue *queue)
 {
+	int retval = INT_MIN;
 	if(queue && queue->front) {
-		return queue->front->data;
+		retval = queue->front->data;
 	}
-	else {
-		return 0;
+	return retval;
+}
+
+int rear(struct queue *queue)
+{
+	int retval = INT_MIN;
+	if(queue && queue->rear) {
+		retval = queue->rear->data;
 	}
+	return retval;
 }
 
 int is_empty(struct queue *queue)
@@ -122,3 +131,4 @@ int main(int argc, char** argv)
 
 	return 0;
 }
+

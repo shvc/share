@@ -1,33 +1,61 @@
 #include <stdio.h>
+#include <stdlib.h>
 
-#define QUEUE_SIZE 6
+struct queue {
+	int front;
+	int rear;
+	int *array;
+	size_t capacity;
+	size_t size;
+};
 
-int queue[QUEUE_SIZE];
-int front = 0;
-int rear = 0;
+struct queue* create_queue(size_t capacity)
+{
+	struct queue *pqueue = malloc(sizeof(struct queue));
+	init_queue(pqueue, capacity);
+	
+	return pqueue;
+}
 
-int isfull()
+void init_queue(struct queue *q, size_t capacity) 
+{
+	q->capacity = capacity-1;
+	q->size = 0;
+	q->front = 0;
+	q->rear = 0;
+	q->array = malloc(sizeof(int) * capacity);
+}
+
+void destroy_queue(struct queue* queue)
+{
+	if(queue) {
+		free(queue->array);
+	}
+	free(queue);
+}
+
+int isfull(struct queue *q)
 {
 	int ret = 0;
-	if( (rear+1)%QUEUE_SIZE == front) {
+	if( ((q->rear)+1)%(q->capacity) == q->front) {
 		ret = 1;
 	}
 
 	return ret;
 }
 
-void enqueue(int x)
+void enqueue(struct queue* q, int x)
 {
-	if( isfull() ) {
+	if( isfull(q) ) {
 		puts("queue is full");
 	}
 	else {
-		queue[rear] = x;
-		rear = (rear+1)%QUEUE_SIZE;
+		q->array[rear] = x;
+		rear = (rear+1)%(q->capacity);
 	}
 }
 
-int dequeue()
+int dequeue(struct queue *q)
 {
 	int ret = 0;
 	if( rear ==  front ) {
@@ -40,7 +68,19 @@ int dequeue()
 	return ret;
 }
 
-int peek()
+int front(struct queue *q)
+{
+	int ret = 0;
+	if(front == rear) {
+		puts("queue is empty");
+	}
+	else {
+		ret = queue[front];
+	}
+	return ret;
+}
+
+int rear(struct queue *q)
 {
 	int ret = 0;
 	if(front == rear) {
@@ -53,9 +93,14 @@ int peek()
 }
 
 
-int size()
+int size(struct queue *q)
 {
-	return (rear+QUEUE_SIZE-front)%QUEUE_SIZE;
+	return q->size;
+}
+
+void test()
+{
+
 }
 
 int main(int argc, char** argv)
