@@ -109,6 +109,8 @@ int main(int argc, char** argv)
 		printf("get hash[%d]: %d\n", pitem->key, pitem->data);
 	}
 
+	hash_free(hash);
+
 	return 0;
 }
 
