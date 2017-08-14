@@ -33,6 +33,7 @@ int list_print(struct node *pnode)
 		printf("node[%i]: %i\n", i, pnode->data);
 		pnode = pnode->next;
 	}
+	puts("==========");
 
 	return 0;
 }
@@ -52,17 +53,38 @@ struct node* list_reverse(struct node *pnode)
 
 int list_free(struct node **pnode)
 {
-	struct node **walk = pnode;
+	struct node *walk = *pnode;
 	struct node *current = NULL;
 
-	while( *walk ) {
-		current = *walk;
-		walk = &(*walk)->next;
-		free(current);
+	while( walk ) {
+		current = walk->next;
+		free(walk);
+		walk = current;
 	}
 	*pnode = NULL;
 
 	return 0;
+}
+
+struct node* reverse(struct node *head)
+{
+	struct node *prev = NULL;
+	struct node *next, *current = head;
+
+	while(current) {
+		next = current->next;
+		current->next = prev;
+		prev = current;
+		current = next;
+	}
+
+	return prev;
+}
+
+struct node* delete(struct node **head, struct node *node)
+{
+
+	return *head;
 }
 
 struct node* list_delete(struct node **head, struct node *p)
@@ -111,16 +133,23 @@ int main(int argc, char* argv[])
 
 	pnode = list_init(len);
 	list_print(pnode);
+	/*
 	list_delete(&pnode, pnode);
 	list_delete(&pnode, pnode->next);
 	list_delete(&pnode, (struct node*)1234);
+	*/
+	pnode = list_reverse(pnode);
 	list_print(pnode);
 
-	list_print(list_reverse(pnode));
+	pnode = reverse(pnode);
+	list_print(pnode);
 
 
-	list_free(&pnode->next->next);
 	list_free(&pnode->next);
+	list_print(pnode);
+	/*
 	list_free(&pnode);
+	list_free(&pnode);
+	*/
 }
 
