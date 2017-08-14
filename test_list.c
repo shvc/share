@@ -117,6 +117,36 @@ struct node* is_circular(struct node* head)
 	return pret;
 }
 
+struct node* circular(struct node *head)
+{
+	struct node *ret = NULL;
+	struct node *p1 = head;
+	struct node *p2 = head;
+	size_t len_p1 = 0;
+	size_t len_p2 = 0;
+
+	if(p1 == NULL) {
+		return ret;
+	}
+
+	do {
+		len_p1++;
+		p1 = p1->next;
+		len_p2 = 1;
+		for(p2=head; p2 != p1; p2=p2->next) {
+			len_p2++;
+		}
+		if(p2==p1 && len_p2!=len_p1) {
+			ret = p2;
+			break;
+		}
+	} while(p1);
+
+	return ret;
+}
+
+
+
 struct node* list_reverse(struct node* pnode)
 {
 	struct node* p = NULL;
@@ -215,9 +245,11 @@ int main(int argc, char** argv)
 	list_add_node(circular_list_head, 2);
 	list_add_node(circular_list_head, 2);
 	printf("is_circular: %i\n", is_circular(circular_list_head));
+	printf("   circular: %i\n", circular(circular_list_head));
 	list_output(circular_list_head);
 	circular_list_head = list_reverse(circular_list_head);
 	printf("is_circular: %i\n", is_circular(circular_list_head));
+	printf("   circular: %i\n", circular(circular_list_head));
 	list_output(circular_list_head);
 	circular_list_head = list_delete_nodes(circular_list_head, 2);
 	list_output(circular_list_head);
