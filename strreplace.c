@@ -59,9 +59,21 @@ int main(int argc, char** argv)
 	char a[100] = "abcdefg, abcdefg, abcdefg";
 	char b[] = "bcd";
 	char c[] = "12345678";
+	char d[] = "xzy";
 
 	printf("before: %s\n", a);
-	printf("after : %s\n", strreplace(a, b, c));
+	printf("sub   : %s\n", b);
+	printf("rep   : %s\n", c);
+	strreplace(a, b, c);
+	printf("after : %s\n", a);
+
+	puts("========================");
+	printf("before: %s\n", a);
+	printf("sub   : %s\n", c);
+	printf("rep   : %s\n", d);
+	strreplace(a, c, d);
+	printf("after : %s\n", a);
+
 
 	return ret;
 }
