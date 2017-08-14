@@ -34,19 +34,20 @@ char* strncpy(char* dst, const char* src, size_t cnt)
 char * strreplace(char* str, char* sub, char* rep)
 {
 	size_t sub_len, rep_len;
-	char *p, *p1, *q;
+	char *pstr, *p, *psub;
 
 	sub_len = strlen(sub);
 	rep_len = strlen(rep);
-	for(p=str; *p != 0; p++) {
-		for(p1=p, q=sub; *p1==*q && *q; p1++, q++);
-		if(*q) continue;
+
+	for(pstr=str; *pstr != 0; pstr++) {
+		for(p=pstr, psub=sub; *p==*psub && *psub; p++, psub++);
+		if(*psub) continue;
 		
 		if(sub_len != rep_len) {
-			strncpy(p+rep_len, p+sub_len, strlen(p+sub_len) + 1);
+			strncpy(pstr+rep_len, pstr+sub_len, strlen(pstr+sub_len) + 1);
 		}
-		strncpy(p, rep, rep_len);
-		p += rep_len;
+		strncpy(pstr, rep, rep_len);
+		pstr += rep_len;
 	}
 
 	return str;
@@ -67,13 +68,19 @@ int main(int argc, char** argv)
 	strreplace(a, b, c);
 	printf("after : %s\n", a);
 
-	puts("========================");
+	puts("=================================");
 	printf("before: %s\n", a);
 	printf("sub   : %s\n", c);
 	printf("rep   : %s\n", d);
 	strreplace(a, c, d);
 	printf("after : %s\n", a);
 
+	puts("=================================");
+	printf("before: %s\n", a);
+	printf("sub   : %s\n", d);
+	printf("rep   : %s\n", b);
+	strreplace(a, d, b);
+	printf("after : %s\n", a);
 
 	return ret;
 }
