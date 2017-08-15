@@ -3,15 +3,18 @@
 #include <string.h>
 
 /*
- * A message containing letters fromA-Zis being encoded to numbers using the following mapping:
+ * A message containing letters fromA-Zis being encoded to digitsbers using the following mapping:
  * 'A' -> 1
  * 'B' -> 2
  * ...
  * 'Z' -> 26
- * Given an encoded message containing digits, determine the total number of ways to decode it.
+ * Given an encoded message containing digits, determine the total digitsber of ways to decode it.
  * For example,
  * Given encoded message"12",it could be decoded as"AB"(1 2) or"L"(12).
- * The number of ways decoding"12"is 2.
+ * The digitsber of ways decoding"12"is 2.
+ *
+ * http://www.geeksforgeeks.org/count-possible-decodings-given-digit-sequence
+ *
  */
 
 int char2int(char c)
@@ -23,16 +26,20 @@ int char2int(char c)
 	return ret;
 }
 
-int num_decoding(char* num, size_t len)
+int count_decoding(char* digits, size_t n)
+{
+}
+
+int dp_count_decoding(char* digits, size_t len)
 {
 	int i, ret = 0;
 	int *p = NULL;
 
-	if(NULL == num || num[0] == '0' || len == 0) {
+	if(NULL == digits || digits[0] == '0' || len == 0) {
 		return 0;
 	}
 	if(len == 1) {
-		if(num[0] == '0') {
+		if(digits[0] == '0') {
 			return 0;
 		}
 		else {
@@ -41,12 +48,12 @@ int num_decoding(char* num, size_t len)
 	}
 	p = malloc(len);
 	p[0] = 1;
-	p[1] = (num[1]=='0'?0:1) + (char2int(num[0]) * 10 + char2int(num[1])?1:0);
+	p[1] = (digits[1]=='0'?0:1) + (char2int(digits[0]) * 10 + char2int(digits[1])?1:0);
 	for(i=2; i<len; i++) {
-		if( num[i] != '0') {
+		if( digits[i] != '0') {
 			p[i] += p[i-1];
 		}
-		if( num[i-1] != '0' && (char2int(num[i-1]) * 10 + char2int(num[i])?1:0) ) {
+		if( digits[i-1] != '0' && (char2int(digits[i-1]) * 10 + char2int(digits[i])?1:0) ) {
 			p[i] += p[i-2];
 		}
 	}
@@ -67,10 +74,10 @@ int main(int argc, char** argv)
 	printf("key  B: value: %d\n", char2int('B'));
 	printf("key  Z: value: %d\n", char2int('Z'));
 
-	printf("%s, sn: %d\n", "1", num_decoding("1", 1));
-	printf("%s, sn: %d\n", "11", num_decoding("11", 2));
-	printf("%s, sn: %d\n", "111", num_decoding("111", 3));
-	printf("%s, sn: %d\n", array, num_decoding(array, len));
+	printf("%s, sn: %d\n", "1", count_decoding("1", 1));
+	printf("%s, sn: %d\n", "11", count_decoding("11", 2));
+	printf("%s, sn: %d\n", "111", count_decoding("111", 3));
+	printf("%s, sn: %d\n", array, count_decoding(array, len));
 
 	return 0;
 }
