@@ -95,24 +95,17 @@ struct node* list_add_nodes(struct node* head, size_t cnt)
 struct node* is_circular(struct node* head)
 {
 	struct node* pret = NULL;
-	struct node* p1 = head;
-	struct node* p2 = head;
+	struct node* p_fast = head;
+	struct node* p_slow = head;
 
-	if( head == NULL ) {
-		return pret;
-	}
-
-	do {
-		p1 = p1->next;
-		p2 = p2->next;
-		if(p2) {
-			p2 = p2->next;
-		}
-		if( p2 && p1 == p2) {
-			pret = p1;
+	while(p_slow && p_fast && p_fast->next) {
+		p_slow = p_slow->next;
+		p_fast = p_fast->next->next;
+		if( p_slow == p_fast ) {
+			pret = p_slow;
 			break;
 		}
-	} while (p1 && p2);
+	}
 
 	return pret;
 }

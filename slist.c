@@ -81,6 +81,24 @@ struct node* reverse(struct node *head)
 	return prev;
 }
 
+struct node* is_circular(struct node *head)
+{
+	struct node *p_ret = NULL;
+	struct node *p_fast = head;
+	struct node *p_slow = head;
+
+	while(p_slow && p_fast && p_fast->next) {
+		p_slow = p_slow->next;
+		p_fast = p_fast->next->next;
+		if(p_slow == p_fast) {
+			p_ret = p_slow;
+			break;
+		}
+	}
+
+	return p_ret;
+}
+
 struct node* delete(struct node **head, struct node *node)
 {
 
