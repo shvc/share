@@ -81,23 +81,57 @@ struct node* reverse(struct node *head)
 	return prev;
 }
 
-struct node* is_circular(struct node *head)
+/*
+   * return the node where the cycle begins.
+    * If there is no cycle, return null
+     */
+struct node* has_cycle(struct node* head)
 {
-	struct node *p_ret = NULL;
-	struct node *p_fast = head;
-	struct node *p_slow = head;
+        struct node* pret = NULL;
+        struct node* p_fast = head;
+        struct node* p_slow = head;
 
-	while(p_slow && p_fast && p_fast->next) {
-		p_slow = p_slow->next;
-		p_fast = p_fast->next->next;
-		if(p_slow == p_fast) {
-			p_ret = p_slow;
-			break;
-		}
-	}
+        while(p_slow && p_fast && p_fast->next) {
+                p_slow = p_slow->next;
+                p_fast = p_fast->next->next;
+                if( p_slow == p_fast ) {
+                        for(p_fast=head; p_slow != p_fast; p_fast=p_fast->next, p_slow=p_slow->next);
+                        pret = p_slow;
+                        break;
+                }
+        }
 
-	return p_ret;
+        return pret;
 }
+
+/*
+   * return the node where the cycle begins.
+    * If there is no cycle, return null
+     */
+struct node* detect_cycle(struct node *head)
+{
+        struct node *ret = NULL;
+        struct node *p1 = head;
+        struct node *p2 = head;
+        size_t len_p1 = 0;
+        size_t len_p2 = 0;
+
+        while(p1) {
+                len_p1++;
+                p1 = p1->next;
+                len_p2 = 0;
+                for(p2=head; p2 != p1; p2=p2->next) {
+                        len_p2++;
+                }
+                if(len_p2 != len_p1) {
+                        ret = p2;
+                        break;
+                }
+        };
+
+        return ret;
+}
+
 
 struct node* delete(struct node **head, struct node *node)
 {

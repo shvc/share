@@ -92,6 +92,10 @@ struct node* list_add_nodes(struct node* head, size_t cnt)
 	return head;
 }
 
+/*
+ * return the node where the cycle begins.
+ * If there is no cycle, return null
+ */
 struct node* is_circular(struct node* head)
 {
 	struct node* pret = NULL;
@@ -102,6 +106,7 @@ struct node* is_circular(struct node* head)
 		p_slow = p_slow->next;
 		p_fast = p_fast->next->next;
 		if( p_slow == p_fast ) {
+			for(p_fast=head; p_slow != p_fast; p_fast=p_fast->next, p_slow=p_slow->next);
 			pret = p_slow;
 			break;
 		}
@@ -110,6 +115,10 @@ struct node* is_circular(struct node* head)
 	return pret;
 }
 
+/*
+ * return the node where the cycle begins.
+ * If there is no cycle, return null
+ */
 struct node* circular(struct node *head)
 {
 	struct node *ret = NULL;
@@ -118,22 +127,18 @@ struct node* circular(struct node *head)
 	size_t len_p1 = 0;
 	size_t len_p2 = 0;
 
-	if(p1 == NULL) {
-		return ret;
-	}
-
-	do {
+	while(p1) {
 		len_p1++;
 		p1 = p1->next;
-		len_p2 = 1;
+		len_p2 = 0;
 		for(p2=head; p2 != p1; p2=p2->next) {
 			len_p2++;
 		}
-		if(p2==p1 && len_p2!=len_p1) {
+		if(len_p2 != len_p1) {
 			ret = p2;
 			break;
 		}
-	} while(p1);
+	};
 
 	return ret;
 }
