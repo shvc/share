@@ -9,14 +9,6 @@ struct queue {
 	size_t size;
 };
 
-struct queue* create_queue(size_t capacity)
-{
-	struct queue *pqueue = malloc(sizeof(struct queue));
-	init_queue(pqueue, capacity);
-	
-	return pqueue;
-}
-
 void init_queue(struct queue *q, size_t capacity) 
 {
 	q->capacity = capacity-1;
@@ -24,6 +16,14 @@ void init_queue(struct queue *q, size_t capacity)
 	q->front = 0;
 	q->rear = 0;
 	q->array = malloc(sizeof(int) * capacity);
+}
+
+struct queue* create_queue(size_t capacity)
+{
+	struct queue *pqueue = malloc(sizeof(struct queue));
+	init_queue(pqueue, capacity);
+	
+	return pqueue;
 }
 
 void destroy_queue(struct queue* queue)
@@ -50,20 +50,20 @@ void enqueue(struct queue* q, int x)
 		puts("queue is full");
 	}
 	else {
-		q->array[rear] = x;
-		rear = (rear+1)%(q->capacity);
+		q->array[q->rear] = x;
+		q->rear = (q->rear+1)%(q->capacity);
 	}
 }
 
 int dequeue(struct queue *q)
 {
 	int ret = 0;
-	if( rear ==  front ) {
+	if( q->rear ==  q->front ) {
 		puts("queue is empty");
 	}
 	else {
-		ret = queue[front];
-		front = (front+1)%QUEUE_SIZE;
+		ret = q->array[q->front];
+		q->front = (q->front+1)%(q->capacity);
 	}
 	return ret;
 }
@@ -71,11 +71,11 @@ int dequeue(struct queue *q)
 int front(struct queue *q)
 {
 	int ret = 0;
-	if(front == rear) {
+	if(q->front == q->rear) {
 		puts("queue is empty");
 	}
 	else {
-		ret = queue[front];
+		ret = q->array[q->front];
 	}
 	return ret;
 }
@@ -83,11 +83,11 @@ int front(struct queue *q)
 int rear(struct queue *q)
 {
 	int ret = 0;
-	if(front == rear) {
+	if(q->front == q->rear) {
 		puts("queue is empty");
 	}
 	else {
-		ret = queue[front];
+		ret = q->array[q->front];
 	}
 	return ret;
 }
@@ -106,33 +106,32 @@ void test()
 int main(int argc, char** argv)
 {
 	int ret = 0;
+	struct queue queue;
+	init_queue(&queue, 10);
 	
-	enqueue(1);
-	enqueue(2);
-	enqueue(3);
-	enqueue(4);
-	enqueue(5);
-	enqueue(6);
-	printf("peek: %d\n", peek());
-	printf("size: %d\n", size());
-	printf("dequeue : %d\n", dequeue());
-	printf("size: %d\n", size());
-	printf("dequeue : %d\n", dequeue());
-	printf("size: %d\n", size());
-	printf("dequeue : %d\n", dequeue());
-	printf("size: %d\n", size());
-	printf("dequeue : %d\n", dequeue());
-	printf("size: %d\n", size());
-	printf("dequeue : %d\n", dequeue());
-	printf("size: %d\n", size());
-	enqueue(70);
-	enqueue(80);
-	printf("dequeue : %d\n", dequeue());
-	printf("dequeue : %d\n", dequeue());
-	printf("dequeue : %d\n", dequeue());
-	printf("dequeue : %d\n", dequeue());
-	printf("dequeue : %d\n", dequeue());
-	printf("dequeue : %d\n", dequeue());
+	enqueue(&queue, 1);
+	enqueue(&queue, 2);
+	enqueue(&queue, 3);
+	enqueue(&queue, 4);
+	enqueue(&queue, 5);
+	enqueue(&queue, 6);
+	printf("size: %d\n", size(&queue));
+	printf("dequeue : %d\n", dequeue(&queue));
+	printf("size: %d\n", size(&queue));
+	printf("dequeue : %d\n", dequeue(&queue));
+	printf("size: %d\n", size(&queue));
+	printf("dequeue : %d\n", dequeue(&queue));
+	printf("size: %d\n", size(&queue));
+	printf("dequeue : %d\n", dequeue(&queue));
+	printf("size: %d\n", size(&queue));
+	printf("dequeue : %d\n", dequeue(&queue));
+	printf("size: %d\n", size(&queue));
+	enqueue(&queue, 70);
+	enqueue(&queue, 80);
+	printf("dequeue : %d\n", dequeue(&queue));
+	printf("dequeue : %d\n", dequeue(&queue));
+	printf("dequeue : %d\n", dequeue(&queue));
+	printf("dequeue : %d\n", dequeue(&queue));
 
 	return ret;
 }
