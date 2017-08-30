@@ -59,6 +59,8 @@ void* func(void *s)
 		ans++;
 
 	unlock(self);
+
+	return NULL;
 }
 
 // Driver code
