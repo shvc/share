@@ -4,7 +4,6 @@
 
 
 binarys := $(patsubst %.c, %, $(wildcard *.c))
-dsyms := $(patsubst %.c, %.dSYM, $(wildcard *.c))
 
 .PHONY: all
 all: $(binarys)
@@ -17,4 +16,3 @@ flags := -g
 .PHONY: clean
 clean:
 	rm -f $(binarys) 
-	rm -rf $(dsyms) 
