@@ -4,7 +4,6 @@ int main()
 	int *p = (int*)&ret;
 
 	*p = 4;
-
 	return *p;
 }
 
