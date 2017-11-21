@@ -82,9 +82,12 @@ do
             then
                 echo "major: $major"
                 echo "timestamp: $timestamp"
+                awk -v chunkid="$chunkid" -v zone="$zone" 'BEGIN{flag=0}/schemaType CHUNK chunkId/,/capacity:/{if($1=="<schemaKey>schemaType" && $2=="CHUNK" && $4 ~ chunkid){flag=1}else if($1=="<schemaKey>schemaType" && $2=="CHUNK" && $4 !~ chunkid){if(flag==1){flag=0;exit}else{flag=0}}if(flag){print}}' $chunkid/${chunkid}.JRContent.${major} > $chunkid/${chunkid}.JRContent.${major}.result
+                startline=0
                 for ((i=1; i<=2; i++))
                 do
-                    eval $(awk -v startline="$startline" -v chunkid="$chunkid" -v zone="$zone" 'NR<=startline{next} /<schemaKey>schemaType CHUNK/{if(chunkid!=$4)next} /primary:/{if(zone!=$2)next} /isEc:/{if($2!="false")next} /ssId:/{printf "ssId=%s\n",$2} /partitionId:/{printf "partitionId=%s\n",$2} /filename:/{printf "filename=%s\n",$2} /      offset:/{printf "offset=%s\n",$2} /endOffset:/{printf "endOffset=%s\nstartline=%s\n",$2,NR;  exit}' $chunkid/${chunkid}.JRContent.${major})
+                    echo "startline   : $startline"
+                    eval $(awk -v startline=$startline 'BEGIN{flag=1}NR>=startline{if($1~"ssId"){printf "ssId=%s;",$2}else if($1~"partitionId"){printf "partitionId=%s;",$2}else if($1~"filename"){printf "filename=%s;",$2}else if($1~"offset"&&flag){flag=0;printf "offset=%s;",$2}else if($1~"endOffset"){printf "startline=%s\n",NR+3; exit}}' $chunkid/${chunkid}.JRContent.${major}.result)
 
                     echo "ssId        : $ssId"
                     echo "partitionId : $partitionId"
