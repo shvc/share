@@ -58,7 +58,7 @@ do
     mkdir -p $chunkid
     curl -s "http://${ipaddr}:9101/diagnostic/1/ShowChunkInfo?cos=${cos}&chunkid=${chunkid}" > $chunkid/${chunkid}.info
     # get chunk primary(zone) and sealedTime
-    eval $(awk '/primary/{printf "zone=%s\n",$2};/sealedTime:/{printf "sealedTime=\047%s\047\n",$2}' $chunkid/${chunkid}.info)
+    eval $(awk '/primary/{printf "zone=%s;",$2};/sealedTime:/{printf "sealedTime=\047%s\047\n",$2}' $chunkid/${chunkid}.info)
     echo "zone: $zone"
     echo "sealedTime: $sealedTime"
     # get chunk dtId
