@@ -10,6 +10,7 @@ print_usage()
 }
 
 ipaddr=$(hostname -i)
+chunkidfile='chunkid.list'
 
 if [ $# -lt 1 ]
 then
@@ -33,10 +34,16 @@ do
     esac
 done
 
+if [ ! -e "$chunkidfile" ]
+then
+    echo "$chunkidfile not exist"
+    print_usage
+fi
+
 eval $(curl -s "http://${ipaddr}:9101/stats/ssm/varraycapacity/" | awk -F'[<>]' '/VarrayId/{printf "cos=\047%s\047\n",$3}')
 if [ "x${cos}" == "x" ]
 then
-    echo "can not get cos"
+    echo "can not get cos of ${ipaddr}"
     print_usage
 fi
 
@@ -45,7 +52,7 @@ declare -A ipmap=()
 eval $(getrackinfo | awk 'NF==8{printf "ipmap[\"%s\"]=%s\n",$5, $1}')
 #echo ${ipmap[$public_ip]}
 
-while read chunkid
+while read -u 99 chunkid
 do
     echo "chunkid: $chunkid"
     mkdir -p $chunkid
@@ -84,17 +91,20 @@ do
                     echo "filename    : $filename"
                     echo "offset      : $offset"
                     echo "endOffset   : $endOffset"
-                    sudo viprexec -n ${ipmap[$ssId]} --dock=object-main \'"dd if=/dae/uuid-${partitionId}/${filename} of=/var/log/${chunkid}.copy${i} bs=1 skip=${offset} count=${endOffset}"\'
-                    echo scp "${ipmap[$ssId]}:/tmp/${chunkid}.copy${i} "
+                    echo viprexec -n ${ipmap[$ssId]} --dock=object-main \'"dd if=/dae/uuid-${partitionId}/${filename} of=/var/log/${chunkid}.copy${i} bs=1 skip=${offset} count=${endOffset}"\'
+                    viprexec -n ${ipmap[$ssId]} --dock=object-main \'"dd if=/dae/uuid-${partitionId}/${filename} of=/var/log/${chunkid}.copy${i} bs=1 skip=${offset} count=${endOffset}"\'
+                    echo scp ${ipmap[$ssId]}:/opt/emc/caspian/fabric/agent/services/object/main/log/${chunkid}.copy${i} ${chunkid}/${chunkid}.copy${i}
+                    scp ${ipmap[$ssId]}:/opt/emc/caspian/fabric/agent/services/object/main/log/${chunkid}.copy${i} ${chunkid}/${chunkid}.copy${i}
                 done
+                # break for loop
                 break
             else
                 rm -f $chunkid/${chunkid}.JRContent.${major}
             fi
-
         else
             echo "major not find"
         fi
     done
-done < $chunkidfile
+    echo "--  ----------------------------  --"
+done 99< $chunkidfile
 
