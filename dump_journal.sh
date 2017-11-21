@@ -1,6 +1,5 @@
 #!/bin/sh
 
-
 print_usage()
 {
     echo "$0:"
@@ -11,7 +10,6 @@ print_usage()
 }
 
 ipaddr=$(hostname -i)
-chunkidfile='chunkid.list'
 
 if [ $# -lt 1 ]
 then
@@ -25,10 +23,10 @@ do
     ;;
     h) ipaddr=$OPTARG
     ;;
-    v) 
+    v)
     echo "ip      :$ipaddr"
     echo "chunks  :$chunkids"
-    ;;   
+    ;;
     ?) echo 'error'
        print_usage
     ;;
@@ -41,6 +39,11 @@ then
     echo "can not get cos"
     print_usage
 fi
+
+# map public ip to private ip to use viprexec
+declare -A ipmap=()
+eval $(getrackinfo | awk 'NF==8{printf "ipmap[\"%s\"]=%s\n",$5, $1}')
+#echo ${ipmap[$public_ip]}
 
 while read chunkid
 do
@@ -74,21 +77,21 @@ do
                 echo "timestamp: $timestamp"
                 for ((i=1; i<=2; i++))
                 do
-                    eval $(awk -v startline="$startline" -v chunkid="$chunkid" -v zone="$zone" 'NR<=startline{next} /<schemaKey>schemaType CHUNK/{if(chunkid!=$4)next} /primary:/{if(zone!=$2)next} /isEc:/{if($2!="false")next} /ssId:/{printf "ssId=%s\n",$2} /partitionId:/{printf "partitionId=%s\n",$2} /filename:/{printf "filename=%s\n",$2} /offset:/{printf "offset=%s\n",$2} /endOffset:/{printf "endOffset=%s\nstartline=%s\n",$2,NR;  exit}' $chunkid/${chunkid}.JRContent.${major})
-                    
+                    eval $(awk -v startline="$startline" -v chunkid="$chunkid" -v zone="$zone" 'NR<=startline{next} /<schemaKey>schemaType CHUNK/{if(chunkid!=$4)next} /primary:/{if(zone!=$2)next} /isEc:/{if($2!="false")next} /ssId:/{printf "ssId=%s\n",$2} /partitionId:/{printf "partitionId=%s\n",$2} /filename:/{printf "filename=%s\n",$2} /      offset:/{printf "offset=%s\n",$2} /endOffset:/{printf "endOffset=%s\nstartline=%s\n",$2,NR;  exit}' $chunkid/${chunkid}.JRContent.${major})
+
                     echo "ssId        : $ssId"
                     echo "partitionId : $partitionId"
                     echo "filename    : $filename"
                     echo "offset      : $offset"
                     echo "endOffset   : $endOffset"
-                    echo viprexec -n "${ssId}" "dd if= of=/tmp/${chunkid}.copy${i} bs=1 skip=${offset} count=${endOffset}"
-                    echo scp "${ssId}:/tmp/${chunkid}.copy${i} "
+                    sudo viprexec -n ${ipmap[$ssId]} --dock=object-main \'"dd if=/dae/uuid-${partitionId}/${filename} of=/var/log/${chunkid}.copy${i} bs=1 skip=${offset} count=${endOffset}"\'
+                    echo scp "${ipmap[$ssId]}:/tmp/${chunkid}.copy${i} "
                 done
                 break
             else
                 rm -f $chunkid/${chunkid}.JRContent.${major}
             fi
-        
+
         else
             echo "major not find"
         fi
