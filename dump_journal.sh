@@ -108,6 +108,6 @@ do
             echo "major not find"
         fi
     done
-    echo ">>  ----------- process finished -----------  <<
+    echo '<<  ----------- process finished -----------  >>'
 done 99< $chunkidfile
 
