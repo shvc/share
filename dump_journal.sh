@@ -78,7 +78,7 @@ do
         if [ "x$major" != "x" ]
         then
             curl -s "http://${ipaddr}:9101/journalcontent/${dtId}?zone=${zone}&major=$major" > $chunkid/${chunkid}.JRContent.${major}
-            if grep $chunkid $chunkid/${chunkid}.JRContent.${major} > /dev/null
+            if grep "schemaType CHUNK chunkId $chunkid" $chunkid/${chunkid}.JRContent.${major} > /dev/null
             then
                 echo "major: $major"
                 echo "timestamp: $timestamp"
@@ -87,7 +87,7 @@ do
                 for ((i=1; i<=2; i++))
                 do
                     echo "startline   : $startline"
-                    eval $(awk -v startline=$startline 'BEGIN{flag=1}NR>=startline{if($1~"ssId"){printf "ssId=%s;",$2}else if($1~"partitionId"){printf "partitionId=%s;",$2}else if($1~"filename"){printf "filename=%s;",$2}else if($1~"offset"&&flag){flag=0;printf "offset=%s;",$2}else if($1~"endOffset"){printf "startline=%s\n",NR+3; exit}}' $chunkid/${chunkid}.JRContent.${major}.result)
+                    eval $(awk -v startline=$startline 'BEGIN{flag=1}NR>=startline{if($1~"ssId"){printf "ssId=%s;",$2}else if($1~"partitionId"){printf "partitionId=%s;",$2}else if($1~"filename"){printf "filename=%s;",$2}else if($1~"offset"&&flag){flag=0;printf "offset=%s;",$2}else if($1~"endOffset"){printf "endOffset=%s;startline=%s\n",$2,NR+3; exit}}' $chunkid/${chunkid}.JRContent.${major}.result)
 
                     echo "ssId        : $ssId"
                     echo "partitionId : $partitionId"
