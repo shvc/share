@@ -54,34 +54,34 @@ eval $(getrackinfo | awk 'NF==8{printf "ipmap[\"%s\"]=%s\n",$5, $1}')
 
 while read -u 99 chunkid
 do
-    echo "chunkid: $chunkid"
+    echo "chunkid   : $chunkid"
     mkdir -p $chunkid
     curl -s "http://${ipaddr}:9101/diagnostic/1/ShowChunkInfo?cos=${cos}&chunkid=${chunkid}" > $chunkid/${chunkid}.info
     # get chunk primary(zone) and sealedTime
-    eval $(awk '/primary/{printf "zone=%s;",$2};/sealedTime:/{printf "sealedTime=\047%s\047\n",$2}' $chunkid/${chunkid}.info)
-    echo "zone: $zone"
+    eval $(awk '/primary/{printf "zone=%s\n",$2};/sealedTime:/{printf "sealedTime=\047%s\047\n",$2}' $chunkid/${chunkid}.info)
+    echo "zone      : $zone"
     echo "sealedTime: $sealedTime"
     # get chunk dtId
     curl -s "http://${ipaddr}:9101/diagnostic/CT/1/DumpAllKeys/CHUNK?chunkId=${chunkid}&useStyle=raw" | grep -B1 schemaType > $chunkid/${chunkid}.dtId
     eval $(awk -F/ '/http/{printf "dtId=\047%s\047\n",$4}' $chunkid/${chunkid}.dtId)
-    echo "dtId: $dtId"
+    echo "dtId      : $dtId"
     # List JR(Journal Region)
     curl -s "http://${ipaddr}:9101/diagnostic/PR/2/DumpAllKeys/DIRECTORYTABLE_RECORD?type=JOURNAL_REGION&dtId=${dtId}&zone=${zone}&useStyle=raw&showvalue=gpb" | grep -B1 schemaType > $chunkid/${chunkid}.JR
     # get JR url
     eval $(awk 'NR==1 && /http/{printf "jr_url=\047%s\047\n",$0}' $chunkid/${chunkid}.JR)
-    echo "JR_URL: $jr_url"
+    echo "JR_URL    : $jr_url"
     curl -s "${jr_url%$'\r'}" > $chunkid/${chunkid}.JRDetail
-    for ((timeval=sealedTime-800000000; timeval<=sealedTime+400000000; timeval+=200000000))
+    for ((timestamp=sealedTime-400000000; timestamp<=sealedTime+200000000; timestamp+=1))
     do
-        eval $(awk -v sealedTime=$timeval '$1 ~ /schemaType/{major=$10} $1 ~ /timestamp:/{if(0 < $2 - sealedTime + 600000000) {printf "major=%s;timestamp=%s\n",major,$2;exit}}' $chunkid/${chunkid}.JRDetail)
+        eval $(awk -v timeval=$timestamp '$1~/schemaType/{major=$10} $1~/timestamp:/{if($2>timeval) {printf "major=%s;timestamp=%s\n",major,$2;exit}}' $chunkid/${chunkid}.JRDetail)
         # Dump JR content
-        if [ "x$major" != "x" ]
+        if [[ "x$major" != "x" ]]
         then
             curl -s "http://${ipaddr}:9101/journalcontent/${dtId}?zone=${zone}&major=$major" > $chunkid/${chunkid}.JRContent.${major}
             if grep "schemaType CHUNK chunkId $chunkid" $chunkid/${chunkid}.JRContent.${major} > /dev/null
             then
-                echo "major: $major"
-                echo "timestamp: $timestamp"
+                echo "major     : $major"
+                echo "timestamp : $timestamp"
                 awk -v chunkid="$chunkid" -v zone="$zone" 'BEGIN{flag=0}/schemaType CHUNK chunkId/,/capacity:/{if($1=="<schemaKey>schemaType" && $2=="CHUNK" && $4 ~ chunkid){flag=1}else if($1=="<schemaKey>schemaType" && $2=="CHUNK" && $4 !~ chunkid){if(flag==1){flag=0;exit}else{flag=0}}if(flag){print}}' $chunkid/${chunkid}.JRContent.${major} > $chunkid/${chunkid}.JRContent.${major}.result
                 startline=0
                 for ((i=1; i<=2; i++))
@@ -108,6 +108,6 @@ do
             echo "major not find"
         fi
     done
-    echo "--  ----------------------------  --"
+    echo ">>  ----------- process finished -----------  <<
 done 99< $chunkidfile
 
