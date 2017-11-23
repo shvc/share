@@ -12,7 +12,7 @@ print_usage()
 
 ipaddr=$(hostname -i)
 chunkidfile='chunkid.list'
-seach_mode='ACTIVE'
+search_mode='status: ACTIVE'
 
 if [ $# -lt 1 ]
 then
@@ -26,7 +26,7 @@ do
     ;;
     h) ipaddr=$OPTARG
     ;;
-    s) seach_mode='SEALED'
+    s) search_mode='status: SEALED'
     ;;
     v)
     echo "ip      :$ipaddr"
