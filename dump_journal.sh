@@ -12,7 +12,7 @@ print_usage()
 
 ipaddr=$(hostname -i)
 chunkidfile='chunkid.list'
-search_mode='status: ACTIVE'
+search_mode='ACTIVE'
 
 if [ $# -lt 1 ]
 then
@@ -26,7 +26,7 @@ do
     ;;
     h) ipaddr=$OPTARG
     ;;
-    s) search_mode='status: SEALED'
+    s) search_mode='SEALED'
     ;;
     v)
     echo "ip      :$ipaddr"
@@ -81,25 +81,28 @@ do
         # Dump JR content
         if [[ "x$major" != "x" ]]
         then
+            startline=""
             curl -s "http://${ipaddr}:9101/journalcontent/${dtId}?zone=${zone}&major=$major" > $chunkid/${chunkid}.JRContent.${major}
-            if grep -A10 "schemaType CHUNK chunkId $chunkid" $chunkid/${chunkid}.JRContent.${major} | grep "$search_mode" > /dev/null
+            eval $(awk -v chunkid="$chunkid" -v cstatus="$search_mode" 'BEGIN{flag=0}/schemaType CHUNK chunkId/,/isEc: false/{if($1=="<schemaKey>schemaType" && $2=="CHUNK" && $4~chunkid){flag=1}else if($1=="<schemaKey>schemaType" && $2=="CHUNK" && $4!~chunkid){flag=0}else if($1=="<value>status:" && $2==cstatus && flag){printf "startline=%d\n",NR;exit}else{next}}' $chunkid/${chunkid}.JRContent.${major})
+            if [ "x$startline" != "x" ]
             then
                 echo "major     : $major"
                 echo "timestamp : $timestamp"
-                awk -v chunkid="$chunkid" -v zone="$zone" 'BEGIN{flag=0}/schemaType CHUNK chunkId/,/capacity:/{if($1=="<schemaKey>schemaType" && $2=="CHUNK" && $4 ~ chunkid){flag=1}else if($1=="<schemaKey>schemaType" && $2=="CHUNK" && $4 !~ chunkid){if(flag==1){flag=0;exit}else{flag=0}}if(flag){print}}' $chunkid/${chunkid}.JRContent.${major} > $chunkid/${chunkid}.JRContent.${major}.result
-                startline=0
                 for ((i=1; i<=2; i++))
                 do
                     echo "startline   : $startline"
-                    eval $(awk -v startline=$startline 'BEGIN{flag=1}NR>=startline{if($1~"ssId"){printf "ssId=%s;",$2}else if($1~"partitionId"){printf "partitionId=%s;",$2}else if($1~"filename"){printf "filename=%s;",$2}else if($1~"offset"&&flag){flag=0;printf "offset=%s;",$2}else if($1~"endOffset"){printf "endOffset=%s;startline=%s\n",$2,NR+3; exit}}' $chunkid/${chunkid}.JRContent.${major}.result)
+                    ssId=""
+                    partitionId=""
+                    filename=""
+                    eval $(awk -v startline=$startline 'BEGIN{flag=1}NR>=startline{if($1~"ssId"){printf "ssId=%s;",$2}else if($1~"partitionId"){printf "partitionId=%s;",$2}else if($1~"filename"){printf "filename=%s;",$2}else if($1~"offset"&&flag){flag=0;printf "offset=%d;",$2/100}else if($1~"endOffset"){printf "endOffset=%d;startline=%s\n",$2/100,NR+3; exit}}' $chunkid/${chunkid}.JRContent.${major})
 
                     echo "ssId        : $ssId"
                     echo "partitionId : $partitionId"
                     echo "filename    : $filename"
                     echo "offset      : $offset"
                     echo "endOffset   : $endOffset"
-                    echo viprexec -n ${ipmap[$ssId]} --dock=object-main \'"dd if=/dae/uuid-${partitionId}/${filename} of=/var/log/${chunkid}.copy${i} bs=1 skip=${offset} count=${endOffset}"\'
-                    viprexec -n ${ipmap[$ssId]} --dock=object-main \'"dd if=/dae/uuid-${partitionId}/${filename} of=/var/log/${chunkid}.copy${i} bs=1 skip=${offset} count=${endOffset}"\'
+                    echo viprexec -n ${ipmap[$ssId]} --dock=object-main \'"dd if=/dae/uuid-${partitionId}/${filename} of=/var/log/${chunkid}.copy${i} bs=100 skip=${offset} count=${endOffset}"\'
+                    viprexec -n ${ipmap[$ssId]} --dock=object-main \'"dd if=/dae/uuid-${partitionId}/${filename} of=/var/log/${chunkid}.copy${i} bs=100 skip=${offset} count=${endOffset}"\'
                     echo scp ${ipmap[$ssId]}:/opt/emc/caspian/fabric/agent/services/object/main/log/${chunkid}.copy${i} ${chunkid}/${chunkid}.copy${i}
                     scp ${ipmap[$ssId]}:/opt/emc/caspian/fabric/agent/services/object/main/log/${chunkid}.copy${i} ${chunkid}/${chunkid}.copy${i}
                 done
