@@ -66,11 +66,16 @@ declare -A ipmap=()
 eval $(getrackinfo | awk 'NF==8{printf "ipmap[\"%s\"]=%s\n",$5, $1}')
 #echo ${ipmap[$public_ip]}
 
-while read -u 99 chunkid
-do
+dump_chunk_data()
+{
+    if [[ $# < 1 ]]
+    then
+        echo "dump_chunk_data need arg: chunkid"
+    fi
+    chunkid=$1
     echo "chunkid   : $chunkid"
     mkdir -p $chunkid
-    curl -s "http://${ipaddr}:9101/diagnostic/1/ShowChunkInfo?cos=${cos}&chunkid=${chunkid}" > $chunkid/${chunkid}.info
+    curl -s "http://${ipaddr}:9101/diagnostic/1/ShowChunkInfo?cos=${cos}&chunkid=${chunkid}" -o $chunkid/${chunkid}.info
     # get chunk primary(zone) and sealedTime
     eval $(awk '/primary/{printf "zone=%s\n",$2};/sealedTime:/{printf "sealedTime=\047%s\047\n",$2}' $chunkid/${chunkid}.info)
     echo "zone      : $zone"
@@ -83,8 +88,14 @@ do
     curl -s "http://${ipaddr}:9101/diagnostic/PR/2/DumpAllKeys/DIRECTORYTABLE_RECORD?type=JOURNAL_REGION&dtId=${dtId}&zone=${zone}&useStyle=raw&showvalue=gpb"|grep -B1 schemaType > $chunkid/${chunkid}.JR
     # get JR url
     eval $(awk 'NR==1 && /http/{printf "jr_url=\047%s\047\n",$0}' $chunkid/${chunkid}.JR)
-    echo "JR_URL    : $jr_url"
-    curl -s "${jr_url%$'\r'}" > $chunkid/${chunkid}.JRDetail
+    if [ "x$jr_url" != "x" ]
+    then
+        echo "JR_URL    : $jr_url"
+    else
+        echo "JR_URL not find"
+        return
+    fi
+    curl -s "${jr_url%$'\r'}" -o $chunkid/${chunkid}.JRDetail
     for ((timestamp=sealedTime-400000000; timestamp<=sealedTime+8000000000; timestamp+=1))
     do
         eval $(awk -v timeval=$timestamp '$1~/schemaType/{major=$10} $1~/timestamp:/{if($2>timeval) {printf "major=%s;timestamp=%s\n",major,$2;exit}}' $chunkid/${chunkid}.JRDetail)
@@ -92,7 +103,7 @@ do
         if [[ "x$major" != "x" ]]
         then
             startline=""
-            curl -s "http://${ipaddr}:9101/journalcontent/${dtId}?zone=${zone}&major=$major" > $chunkid/${chunkid}.JRContent.${major}
+            curl -s "http://${ipaddr}:9101/journalcontent/${dtId}?zone=${zone}&major=$major" -o $chunkid/${chunkid}.JRContent.${major}
             eval $(awk -v chunkid="$chunkid" -v cstatus="$search_mode" 'BEGIN{flag=0}/schemaType CHUNK chunkId/,/isEc: false/{if($1=="<schemaKey>schemaType" && $2=="CHUNK" && $4~chunkid){flag=1}else if($1=="<schemaKey>schemaType" && $2=="CHUNK" && $4!~chunkid){flag=0}else if($1=="<value>status:" && $2==cstatus && flag){printf "startline=%d\n",NR;exit}else{next}}' $chunkid/${chunkid}.JRContent.${major})
             if [ "x$startline" != "x" ]
             then
@@ -109,8 +120,6 @@ do
                     echo "ssId        : $ssId"
                     echo "partitionId : $partitionId"
                     echo "filename    : $filename"
-                    echo "offset      : $offset"
-                    echo "endOffset   : $endOffset"
                     echo viprexec -n ${ipmap[$ssId]} --dock=object-main \'"dd if=/dae/uuid-${partitionId}/${filename} of=/var/log/${chunkid}.copy${i} bs=100 skip=${offset} count=${endOffset}"\'
                     viprexec -n ${ipmap[$ssId]} --dock=object-main \'"dd if=/dae/uuid-${partitionId}/${filename} of=/var/log/${chunkid}.copy${i} bs=100 skip=${offset} count=${endOffset}"\'
                     echo scp ${ipmap[$ssId]}:/opt/emc/caspian/fabric/agent/services/object/main/log/${chunkid}.copy${i} ${chunkid}/${chunkid}.copy${i}
@@ -125,6 +134,12 @@ do
             echo "major not find"
         fi
     done
+}
+
+
+while read -u 99 chunkid
+do
+    dump_chunk_data "${chunkid}"
     echo '<<  ----------- process finished -----------  >>'
 done 99< $chunkidfile
 
