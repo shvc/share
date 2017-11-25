@@ -137,9 +137,37 @@ dump_chunk_data()
 }
 
 
+validate_chunk_data()
+{
+    if [[ $# < 1 ]]
+    then
+        echo "validate_chunk_data need arg: chunkid"
+    fi
+    chunkid=$1
+    if [ -f "${chunkid}/${chunkid}.copy1" ]
+    then
+        :
+    fi
+}
+
+inject_chunk_data()
+{
+    if [[ $# < 1 ]]
+    then
+        echo "validate_chunk_data need arg: chunkid"
+    fi
+    chunkid=$1
+    if [ -f "${chunkid}/${chunkid}.copy1" ]
+    then
+        :
+    fi
+}
+
 while read -u 99 chunkid
 do
     dump_chunk_data "${chunkid}"
+    validate_chunk_data "${chunkid}"
+    inject_chunk_data "${chunkid}"
     echo '<<  ----------- process finished -----------  >>'
 done 99< $chunkidfile
 
