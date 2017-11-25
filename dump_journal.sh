@@ -1,14 +1,24 @@
-#!/bin/sh
+#!/bin/bash
 
 print_usage()
 {
     echo "$0:"
-    echo " -f file \t chunkid file"
-    echo " -h host \t host address"
+    echo " -a \t\t (-d,-v,-i) dump, validate and inject back"
     echo " -s \t\t dump first sealed chunk data"
+    echo " -v \t\t validate dumped chunk copies"
+    echo " -i \t\t inject back chunk data"
+    echo " -h host \t host address"
+    echo " -f file \t chunkid file"
     echo " -v \t\t verbos"
     exit 1
 }
+
+if [[ $BASH_VERSINFO < 4 ]]
+then
+    echo "You bash version: $BASH_VERSION"
+    echo "This script need bash 4.0 or later"
+    exit 0
+fi
 
 ipaddr=$(hostname -i)
 chunkidfile='chunkid.list'
@@ -19,18 +29,18 @@ then
     print_usage
 fi
 
-while getopts ':f:h:sv' opt
+while getopts ':f:h:savi' opt
 do
     case $opt in
     f) chunkidfile=$OPTARG
     ;;
     h) ipaddr=$OPTARG
     ;;
+    i) inject_back='TRUE'
+    ;;
     s) search_mode='SEALED'
     ;;
-    v)
-    echo "ip      :$ipaddr"
-    echo "chunks  :$chunkids"
+    v) validate_data='VALIDATE'
     ;;
     ?) echo 'error'
        print_usage
