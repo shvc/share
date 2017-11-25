@@ -179,7 +179,7 @@ inject_chunk_data()
         return 3
     fi
     # get chunk segments info
-    eval $(awk '/primary/{printf "zone=%s\n",$2};/sealedTime:/{printf "sealedTime=\047%s\047\n",$2}' $chunkid/${chunkid}.info)
+    eval $(awk '/segments/,/endOffset/{printf "zone=%s\n",$2};/sealedTime:/{printf "sealedTime=\047%s\047\n",$2}' $chunkid/${chunkid}.info)
     echo "zone      : $zone"
     echo "sealedTime: $sealedTime"
 }
