@@ -182,6 +182,11 @@ inject_chunk_data()
     eval $(awk '/segments/,/endOffset/{printf "zone=%s\n",$2};/sealedTime:/{printf "sealedTime=\047%s\047\n",$2}' $chunkid/${chunkid}.info)
     echo "zone      : $zone"
     echo "sealedTime: $sealedTime"
+    index=11
+    dd if=${chunkid}.copy1 of=/dae/uuid-${partitionId}/${filename} conv=notrunc bs=1 count=11184800 seek=2885678400 skip=33554400
+    python calc_checksum.py 346f1593-790b-4311-ab1b-ea5e8ac936c4/346f1593-790b-4311-ab1b-ea5e8ac936c4.copy1 33554400 11184800
+    curl -X PUT "http://${ipaddr}:9101/cm/recover/setSegmentChecksum/${cos}/1/${chunkid}/${index}/${checksum}"
+    curl -X PUT "http://${ipaddr}:9101/cm/recover/removeRecoveryStatus/${cos}/1/${chunkid}/${index}"
 }
 
 while read -u 99 chunkid
