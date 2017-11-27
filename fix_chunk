@@ -20,7 +20,7 @@ then
     exit 0
 fi
 
-ipaddr=$(hostname -i)
+ipaddr=''
 chunkidfile='chunkid.list'
 search_mode='ACTIVE'
 dump_data='TRUE'
@@ -59,6 +59,10 @@ if [ ! -e "$chunkidfile" ]
 then
     echo "$chunkidfile not exist"
     print_usage
+fi
+if [ "x${ipaddr} == "x" ]
+then
+    ipaddr=$(hostname -i)
 fi
 
 eval $(curl -s "http://${ipaddr}:9101/stats/ssm/varraycapacity/" | awk -F'[<>]' '/VarrayId/{printf "cos=\047%s\047\n",$3}')
@@ -120,8 +124,8 @@ dump_chunk_data()
                 do
                     echo "startline   : $startline"
                     ssId=""
-                    partitionId=""
                     filename=""
+                    partitionId=""
                     eval $(awk -v startline=$startline 'BEGIN{flag=1}NR>=startline{if($1~"ssId"){printf "ssId=%s;",$2}else if($1~"partitionId"){printf "partitionId=%s;",$2}else if($1~"filename"){printf "filename=%s;",$2}else if($1~"offset"&&flag){flag=0;printf "offset=%d;",$2/100}else if($1~"endOffset"){printf "endOffset=%d;startline=%s\n",$2/100,NR+3; exit}}' $chunkid/${chunkid}.JRContent.${major})
 
                     echo "ssId        : $ssId"
