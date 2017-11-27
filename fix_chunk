@@ -164,6 +164,12 @@ validate_chunk_data()
         then
             retval=0
         fi
+    elif [ -e "${chunkid}/${chunkid}.copy" ]
+    then
+        if grep "$chunkid" "${chunkid}/${chunkid}.copy"
+        then
+            retval=0
+        fi
     else
         echo "cmp ${chunkid} BAD"
         retval=2
@@ -189,13 +195,19 @@ inject_chunk_data()
         echo "chunk ${chunkid} data validation failed"
         return 3
     fi
+    if [ -e ${chunkid}/${chunkid}.copy ]
+    then
+        chunk_copy=${chunkid}/${chunkid}.copy
+    else
+        chunk_copy=${chunkid}/${chunkid}.copy1
+    fi
     # get chunk segments info
     eval $(awk '/segments/,/endOffset/{printf "zone=%s\n",$2};/sealedTime:/{printf "sealedTime=\047%s\047\n",$2}' $chunkid/${chunkid}.info)
     echo "zone      : $zone"
     echo "sealedTime: $sealedTime"
     index=11
-    dd if=${chunkid}.copy1 of=/dae/uuid-${partitionId}/${filename} conv=notrunc bs=1 count=11184800 seek=2885678400 skip=33554400
-    python calc_checksum.py 346f1593-790b-4311-ab1b-ea5e8ac936c4/346f1593-790b-4311-ab1b-ea5e8ac936c4.copy1 33554400 11184800
+    dd if=${chunk_copy} of=/dae/uuid-${partitionId}/${filename} conv=notrunc bs=1 count=11184800 seek=2885678400 skip=33554400
+    python calc_checksum.py ${chunk_copy} 33554400 11184800
     curl -X PUT "http://${ipaddr}:9101/cm/recover/setSegmentChecksum/${cos}/1/${chunkid}/${index}/${checksum}"
     curl -X PUT "http://${ipaddr}:9101/cm/recover/removeRecoveryStatus/${cos}/1/${chunkid}/${index}"
 }
