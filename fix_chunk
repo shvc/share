@@ -23,11 +23,9 @@ fi
 ipaddr=$(hostname -i)
 chunkidfile='chunkid.list'
 search_mode='ACTIVE'
-
-if [ $# -lt 1 ]
-then
-    print_usage
-fi
+dump_data='TRUE'
+inject_data='FALSE'
+validate_data='FALSE'
 
 while getopts ':f:h:savi' opt
 do
@@ -36,13 +34,22 @@ do
     ;;
     h) ipaddr=$OPTARG
     ;;
-    i) inject_back='TRUE'
+    a)
+        dump_data='TRUE'
+        inject_data='TRUE'
+    ;;
+    i)
+        dump_data='FALSE'
+        inject_data='TRUE'
     ;;
     s) search_mode='SEALED'
     ;;
-    v) validate_data='VALIDATE'
+    v)
+        dump_data='FALSE'
+        validate_data='TRUE'
+        inject_data='FALSE'
     ;;
-    ?) echo 'error'
+    ?) echo '  error'
        print_usage
     ;;
     esac
@@ -191,9 +198,21 @@ inject_chunk_data()
 
 while read -u 99 chunkid
 do
-    dump_chunk_data "${chunkid}"
-    validate_chunk_data "${chunkid}"
-    inject_chunk_data "${chunkid}"
+    # search and dump chunk 2 copies
+    if [ "x$dump_data" == "xTRUE" ]
+    then
+        dump_chunk_data "${chunkid}"
+    fi
+    # validate local chunk data
+    if [ "x$validate_data" == "xTRUE" ]
+    then
+        validate_chunk_data "${chunkid}"
+    fi
+    # inject local chunk data
+    if [ "x$indect_data" == "xTRUE" ]
+    then
+        inject_chunk_data "${chunkid}"
+    fi
     echo '<<  ----------- process finished -----------  >>'
 done 99< $chunkidfile
 
