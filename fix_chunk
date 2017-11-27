@@ -3,13 +3,12 @@
 print_usage()
 {
     echo "$0:"
-    echo " -a       (-d,-v,-i) dump, validate and inject back"
+    echo " -a       (-d,-v,-i) dump, validate and inject data"
     echo " -s       Dump first sealed chunk data"
-    echo " -v       Validate dumped chunk copies"
+    echo " -v       Validate dumped chunk data"
     echo " -i       Inject back chunk data"
     echo " -h host  Host address"
     echo " -f file  Chunkid file"
-    echo " -v       Verbos"
     exit 1
 }
 
