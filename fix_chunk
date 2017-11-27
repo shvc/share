@@ -65,7 +65,7 @@ then
     ipaddr=$(hostname -i)
 fi
 
-if [ ! -e 'crc32.py' ]
+if [ ! -s 'crc32.py' ]
 then
     echo 'import sys'
     echo 'import zlib'
