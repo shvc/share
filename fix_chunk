@@ -156,7 +156,7 @@ validate_chunk_data()
     if cmp -s "${chunkid}/${chunkid}.copy1" "${chunkid}/${chunkid}.copy2"
     then
         echo "cmp ${chunkid} OK"
-        if strings "${chunkid}/${chunkid}.copy1" | grep "$chunkid" > /dev/null
+        if grep "$chunkid" "${chunkid}/${chunkid}.copy1"
         then
             retval=0
         fi
