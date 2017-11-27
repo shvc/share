@@ -64,6 +64,14 @@ then
     ipaddr=$(hostname -i)
 fi
 
+if [ ! -e 'crc32.py' ]
+then
+    echo 'import sys'
+    echo 'import zlib'
+    echo 'with open(sys.args[0]) as f:'
+    echo '    print f.readline()'
+fi > crc32.py
+
 eval $(curl -s "http://${ipaddr}:9101/stats/ssm/varraycapacity/" | awk -F'[<>]' '/VarrayId/{printf "cos=\047%s\047\n",$3}')
 if [ "x${cos}" == "x" ]
 then
