@@ -59,7 +59,8 @@ then
     echo "$chunkidfile not exist"
     print_usage
 fi
-if [ "x${ipaddr} == "x" ]
+
+if [ "x${ipaddr}" == "x" ]
 then
     ipaddr=$(hostname -i)
 fi
