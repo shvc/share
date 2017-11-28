@@ -123,7 +123,8 @@ dump_chunk_data()
     curl -s "${jr_url%$'\r'}" -o $chunkid/${chunkid}.JRDetail
     for ((timestamp=sealedTime-400000000; timestamp<=sealedTime+8000000000; timestamp+=1))
     do
-        eval $(awk -v timeval=$timestamp '$1~/schemaType/{major=$10} $1~/timestamp:/{if($2>timeval) {printf "major=%s;timestamp=%s\n",major,$2;exit}}' $chunkid/${chunkid}.JRDetail)
+        major=''
+        eval $(awk -v timeval=$timestamp '$1=="schemaType"{major=$10} $1=="timestamp:"{timestamp=$2;if($2>timeval){found=1;exit}} END{if(found==1){printf "major=%s;timestamp=%s",major,timestamp}else{printf "timestamp=%s",timestamp}}' $chunkid/${chunkid}.JRDetail)
         # Dump JR content
         if [[ "x$major" != "x" ]]
         then
@@ -179,12 +180,6 @@ validate_chunk_data()
             mv -v "${chunkid}/${chunkid}.copy2" "${chunkid}/${chunkid}.dat"
             retval=0
         fi
-    elif [ -e "${chunkid}/${chunkid}.copy" ]
-    then
-        if grep "$chunkid" "${chunkid}/${chunkid}.copy"
-        then
-            retval=0
-        fi
     else
         echo "cmp ${chunkid} BAD"
         retval=2
@@ -210,12 +205,6 @@ inject_chunk_data()
     then
         echo "valid chunk data ${chunk_data} not find"
         return 3
-    fi
-    if [ -e ${chunkid}/${chunkid}.copy ]
-    then
-        chunk_copy=${chunkid}/${chunkid}.copy
-    else
-        chunk_copy=${chunkid}/${chunkid}.copy1
     fi
     # get chunk segments info
     eval $(awk '/segments/,/endOffset/{printf "zone=%s\n",$2};/sealedTime:/{printf "sealedTime=\047%s\047\n",$2}' $chunkid/${chunkid}.info)
