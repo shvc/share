@@ -179,6 +179,12 @@ validate_chunk_data()
             mv -v "${chunkid}/${chunkid}.copy2" "${chunkid}/${chunkid}.dat"
             retval=0
         fi
+    elif [ -e "${chunkid}/${chunkid}.copy" ]
+    then
+        if grep "$chunkid" "${chunkid}/${chunkid}.copy"
+        then
+            retval=0
+        fi
     else
         echo "cmp ${chunkid} BAD"
         retval=2
@@ -204,6 +210,12 @@ inject_chunk_data()
     then
         echo "valid chunk data ${chunk_data} not find"
         return 3
+    fi
+    if [ -e ${chunkid}/${chunkid}.copy ]
+    then
+        chunk_copy=${chunkid}/${chunkid}.copy
+    else
+        chunk_copy=${chunkid}/${chunkid}.copy1
     fi
     # get chunk segments info
     eval $(awk '/segments/,/endOffset/{printf "zone=%s\n",$2};/sealedTime:/{printf "sealedTime=\047%s\047\n",$2}' $chunkid/${chunkid}.info)
