@@ -1,5 +1,2 @@
-# tools
-Linux tools
-
-# Algorithm
-Many algorithm
+## tools and algorithm
+Many tools and algorithm
