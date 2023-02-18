@@ -5,6 +5,8 @@ base
 git config --global alias.b branch
 git config --global alias.st status
 git config --global alias.co checkout
+git config --global alias.cm commit
+git config --global alias.ll log --oneline
 git config --global credential.helper cache
 git config --global color.ui auto
 git config --global core.editor vi
