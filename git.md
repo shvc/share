@@ -20,17 +20,14 @@ git reset --hard origin/master
 
 proxy
 ```
+# git proxy
 git config --global http.proxy http://192.168.1.1:1080
 git config --global http.https://golang.org.proxy socks5://192.168.1.1:1080
-```
-or  
-```
+# or
 git config --global http.proxy socks5://192.168.1.1:1080
 git config --global http.proxy socks5h://192.168.1.1:1080
-```
 
-bash env proxy
-```
+# bash proxy
 export http_proxy=socks5h://172.16.3.235:1888
 export HTTPS_PROXY=socks5h://172.16.3.235:1888
 export ALL_PROXY=socks5h://172.16.3.235:1888
@@ -38,17 +35,17 @@ export ALL_PROXY=socks5h://172.16.3.235:1888
 
 create a tag and push
 ```
-git tag -a v1.0.0 -m 'version 1.0.0' ff57e5c4d4e96dd52127af2d4abff75f96d889cc
-
+git tag -a v1.0.0 -m 'version 1.0.0' bffd78b
 git push origin v1.0.0
 ```
+
 delete tag  
 ```
 git tag -d tagName
 git push origin :refs/tags/tagName
 ```
 
-checkout tag
+checkout tag to branch
 ```
 git checkout tags/v3.2.7 -b v3.2.7
 ```
