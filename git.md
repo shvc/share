@@ -49,3 +49,18 @@ checkout tag to branch
 ```
 git checkout tags/v3.2.7 -b v3.2.7
 ```
+
+remote
+```
+# add a remote: upstream
+git remote add upstream https://github.com/minio/minio.git
+# set current default remote to upstream
+git branch --set-upstream-to upstream
+```
+
+rebase
+```
+git pull --rebase upstream main
+git rebase -i bffd78b
+git push -f
+```
