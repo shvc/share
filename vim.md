@@ -22,8 +22,11 @@ ctrl+O -> alternate file
 ```
 cw -> change word
 % -> jump to bracket
-cib ->  change content in next bracket
-ciB -> change content in next {}
+cib ->  change content inside next bracket, c(d,y,v), i(a)
+ciB -> change content inside next {}
+ci" -> change content inside next ""
+ci' -> change content inside next ''
+cit -> change content inside next tag(<tag>)
 ctrl+a -> add(+1) to next number
 ctrl+x -> sub(-1) to nux number
 /\d -> jump to next number
