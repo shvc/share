@@ -1,4 +1,7 @@
-https://www.centos.bz/2017/08/ssh-reverse-proxy  
+https://phoenixnap.com/kb/ssh-port-forwarding  
+https://www.cnblogs.com/cangqinglang/p/12732661.html  
+
+
 ### 0. ssh server config
 - config sshd `/etc/ssh/sshd_config`
 ```
