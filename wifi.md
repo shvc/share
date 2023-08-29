@@ -21,3 +21,9 @@ enabled_metadata=1
 #### shadowsocks
 https://www.itmangoto.cn/2018/06/15/shadowsocks-libev-local-redir-tunnel-server/  
 
+
+| Task | Status |
+|------|--------|
+| Write blog post | - [x] |
+| Publish blog post | - [ ] |
+
