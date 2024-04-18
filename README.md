@@ -25,10 +25,9 @@ virt-install –name centos7 –ram 1024 –disk path=/centos7.qcow2\
   –location /CentOS-7-x86_64-DVD-1708.iso –nographics\
   –accelerate –extra-args=”console=ttyS0″ –network bridge=virbr0
 ```
-OS setting
+Or set in OS after installation
 ```
-systemctl enable serial-getty@ttyS0.service
-systemctl start serial-getty@ttyS0.service
+systemctl enable --now serial-getty@ttyS0.service
 ```
 
 ## docker install offline
