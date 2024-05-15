@@ -7,7 +7,7 @@ docker build --build-arg http_proxy=http://10.239.4.80:913 --build-arg https_pro
 ENV http_proxy 10.239.4.80:913
 ```
 
-# ssh tunel as socks5 proxy
+# ssh tunnel as socks5 proxy
 ```
 ssh -D 127.0.0.1:8888 root@remote.ip
 ```
