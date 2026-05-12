@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -13,6 +14,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"golang.org/x/crypto/ssh"
@@ -22,12 +24,12 @@ import (
 )
 
 func main() {
-	listenAddr := flag.String("l", "0.0.0.0:8888", "本地代理监听地址 (同时服务 SOCKS5 与 HTTP)")
-	identity := flag.String("i", "", "私钥文件路径 (可逗号分隔多个)")
-	password := flag.String("p", "", "登录密码 (可选;不填则需要时交互式输入)")
-	insecure := flag.Bool("insecure", false, "跳过 known_hosts 校验")
+	listenAddr := flag.String("l", "0.0.0.0:8888", "local proxy listen address (SOCKS5 & HTTP)")
+	identity := flag.String("i", "", "private key file path (comma-separated for multiple)")
+	password := flag.String("p", "", "login password (optional; interactive prompt if omitted)")
+	insecure := flag.Bool("insecure", false, "skip known_hosts verification")
 	flag.Usage = func() {
-		fmt.Fprintln(os.Stderr, "用法: gossh [-l listen] [-i key] [-p password] [-insecure] user@host[:port]")
+		fmt.Fprintln(os.Stderr, "Usage: gossh [-l listen] [-i key] [-p password] [-insecure] user@host[:port]")
 		flag.PrintDefaults()
 	}
 	flag.Parse()
@@ -38,46 +40,46 @@ func main() {
 	}
 	userName, host, port, err := parseTarget(flag.Arg(0))
 	if err != nil {
-		log.Fatalf("解析目标地址失败: %v", err)
+		log.Fatalf("parse target address failed: %v", err)
 	}
 
 	cfg, err := buildSSHConfig(userName, host, *identity, *password, *insecure)
 	if err != nil {
-		log.Fatalf("构建 SSH 配置失败: %v", err)
+		log.Fatalf("build SSH config failed: %v", err)
 	}
 
 	sshAddr := net.JoinHostPort(host, strconv.Itoa(port))
-	log.Printf("正在连接 SSH: %s@%s ...", userName, sshAddr)
+	log.Printf("connecting SSH: %s@%s ...", userName, sshAddr)
 	client, err := ssh.Dial("tcp", sshAddr, cfg)
 	if err != nil {
-		log.Fatalf("SSH 连接失败: %v", err)
+		log.Fatalf("SSH connection failed: %v", err)
 	}
 	defer client.Close()
-	log.Printf("SSH 连接已建立")
+	log.Printf("SSH connection established")
 
 	go keepAlive(client)
 
 	ln, err := net.Listen("tcp", *listenAddr)
 	if err != nil {
-		log.Fatalf("监听 %s 失败: %v", *listenAddr, err)
+		log.Fatalf("listen %s failed: %v", *listenAddr, err)
 	}
 	defer ln.Close()
-	log.Printf("代理监听中: %s (同时支持 SOCKS5 / HTTP)", *listenAddr)
+	log.Printf("proxy listening: %s (SOCKS5 / HTTP)", *listenAddr)
 
 	for {
 		c, err := ln.Accept()
 		if err != nil {
-			log.Printf("accept 失败: %v", err)
+			log.Printf("accept failed: %v", err)
 			continue
 		}
 		go handleConn(c, client)
 	}
 }
 
-// ---------- 目标地址解析 ----------
+// ---------- Target address parsing ----------
 
-// parseTarget 解析 "[user@]host[:port]",port 缺省为 22。
-// 支持 IPv6 字面量,如 user@[::1]:22。
+// parseTarget parses "[user@]host[:port]", default port is 22.
+// Supports IPv6 literals, e.g. user@[::1]:22.
 func parseTarget(s string) (userName, host string, port int, err error) {
 	port = 22
 	if i := strings.IndexByte(s, '@'); i >= 0 {
@@ -86,19 +88,19 @@ func parseTarget(s string) (userName, host string, port int, err error) {
 		userName = currentUserName()
 	}
 	if userName == "" {
-		return "", "", 0, fmt.Errorf("无法确定用户名,请使用 user@host 形式")
+		return "", "", 0, fmt.Errorf("cannot determine username, use user@host format")
 	}
-	// 尝试 host:port (含 IPv6 [::1]:port);失败则视为纯 host
+	// try host:port (including IPv6 [::1]:port); treat as bare host on failure
 	if h, p, e := net.SplitHostPort(s); e == nil {
 		host = h
 		if port, err = strconv.Atoi(p); err != nil {
-			return "", "", 0, fmt.Errorf("非法端口 %q: %w", p, err)
+			return "", "", 0, fmt.Errorf("invalid port %q: %w", p, err)
 		}
 	} else {
 		host = strings.Trim(s, "[]")
 	}
 	if host == "" {
-		return "", "", 0, fmt.Errorf("缺少 host")
+		return "", "", 0, fmt.Errorf("missing host")
 	}
 	return userName, host, port, nil
 }
@@ -110,13 +112,13 @@ func currentUserName() string {
 	return os.Getenv("USER")
 }
 
-// ---------- SSH 配置 ----------
+// ---------- SSH configuration ----------
 
 func buildSSHConfig(userName, host, identity, password string, insecure bool) (*ssh.ClientConfig, error) {
 	var auths []ssh.AuthMethod
 	var loaded []string
 
-	// 1) ssh-agent (公钥)
+	// 1) ssh-agent (public key)
 	if sock := os.Getenv("SSH_AUTH_SOCK"); sock != "" {
 		if conn, err := net.Dial("unix", sock); err == nil {
 			auths = append(auths, ssh.PublicKeysCallback(agent.NewClient(conn).Signers))
@@ -124,7 +126,7 @@ func buildSSHConfig(userName, host, identity, password string, insecure bool) (*
 		}
 	}
 
-	// 2) 私钥文件 (公钥)
+	// 2) private key files (public key)
 	var keyFiles []string
 	if identity != "" {
 		keyFiles = strings.Split(identity, ",")
@@ -146,7 +148,7 @@ func buildSSHConfig(userName, host, identity, password string, insecure bool) (*
 		signer, err := ssh.ParsePrivateKey(data)
 		if err != nil {
 			if _, ok := err.(*ssh.PassphraseMissingError); ok {
-				fmt.Fprintf(os.Stderr, "私钥 %s 已加密,请输入 passphrase: ", kf)
+				fmt.Fprintf(os.Stderr, "key %s is encrypted, enter passphrase: ", kf)
 				pp, perr := term.ReadPassword(int(os.Stdin.Fd()))
 				fmt.Fprintln(os.Stderr)
 				if perr == nil {
@@ -163,19 +165,19 @@ func buildSSHConfig(userName, host, identity, password string, insecure bool) (*
 		loaded = append(loaded, "key:"+kf)
 	}
 
-	// 3) 密码 —— 与私钥并存,服务端拒掉公钥后会自动回退到密码
+	// 3) password — coexists with private key, server falls back after rejecting public key
 	if password != "" {
 		auths = append(auths, ssh.Password(password))
 		loaded = append(loaded, "password(cli)")
 	} else {
-		// 交互式:只在服务端真的请求密码时才提示
+		// interactive: only prompt when server actually requests password
 		auths = append(auths, ssh.PasswordCallback(func() (string, error) {
-			fmt.Fprintf(os.Stderr, "%s@%s 的密码: ", userName, host)
+			fmt.Fprintf(os.Stderr, "password for %s@%s: ", userName, host)
 			pp, err := term.ReadPassword(int(os.Stdin.Fd()))
 			fmt.Fprintln(os.Stderr)
 			return string(pp), err
 		}))
-		// 同时支持 keyboard-interactive (某些服务器只开这个)
+		// also support keyboard-interactive (some servers only enable this)
 		auths = append(auths, ssh.KeyboardInteractive(func(name, instr string, qs []string, echos []bool) ([]string, error) {
 			answers := make([]string, len(qs))
 			for i, q := range qs {
@@ -195,9 +197,9 @@ func buildSSHConfig(userName, host, identity, password string, insecure bool) (*
 		loaded = append(loaded, "password(interactive)")
 	}
 
-	log.Printf("启用的认证方式: %s", strings.Join(loaded, ", "))
+	log.Printf("auth methods: %s", strings.Join(loaded, ", "))
 
-	// host key 校验
+	// host key verification
 	var hostKeyCb ssh.HostKeyCallback
 	if insecure {
 		hostKeyCb = ssh.InsecureIgnoreHostKey()
@@ -206,7 +208,7 @@ func buildSSHConfig(userName, host, identity, password string, insecure bool) (*
 		kh := filepath.Join(home, ".ssh", "known_hosts")
 		cb, err := knownhosts.New(kh)
 		if err != nil {
-			log.Printf("读取 %s 失败 (%v),临时忽略 host key 校验", kh, err)
+			log.Printf("read %s failed (%v), temporarily skipping host key check", kh, err)
 			hostKeyCb = ssh.InsecureIgnoreHostKey()
 		} else {
 			hostKeyCb = cb
@@ -227,12 +229,12 @@ func keepAlive(c *ssh.Client) {
 	for range t.C {
 		_, _, err := c.SendRequest("keepalive@openssh.com", true, nil)
 		if err != nil {
-			return
+			log.Fatalf("SSH keepalive failed, connection lost: %v", err)
 		}
 	}
 }
 
-// ---------- 协议分发 ----------
+// ---------- Protocol dispatch ----------
 func handleConn(c net.Conn, ssh *ssh.Client) {
 	defer c.Close()
 	br := bufio.NewReader(c)
@@ -244,18 +246,30 @@ func handleConn(c net.Conn, ssh *ssh.Client) {
 	case first[0] == 0x05:
 		handleSocks5(br, c, ssh)
 	case first[0] == 0x04:
-		// SOCKS4 暂不支持
-		log.Printf("收到 SOCKS4 请求,暂未实现")
+		// SOCKS4 not supported
+		log.Printf("received SOCKS4 request, not implemented")
 	default:
-		// 视为 HTTP
+		// treat as HTTP
 		handleHTTP(br, c, ssh)
 	}
+}
+
+// isSSHTransportDead checks if the SSH transport is unrecoverable
+func isSSHTransportDead(err error) bool {
+	return errors.Is(err, syscall.ENETDOWN) ||
+		errors.Is(err, syscall.ECONNRESET) ||
+		errors.Is(err, syscall.EPIPE) ||
+		errors.Is(err, syscall.ENETRESET) ||
+		errors.Is(err, syscall.ECONNABORTED) ||
+		errors.Is(err, syscall.EHOSTDOWN) ||
+		errors.Is(err, syscall.EHOSTUNREACH) ||
+		errors.Is(err, net.ErrClosed)
 }
 
 // ---------- SOCKS5 ----------
 
 func handleSocks5(br *bufio.Reader, c net.Conn, sshc *ssh.Client) {
-	// 握手: VER(1) NMETHODS(1) METHODS(n)
+	// handshake: VER(1) NMETHODS(1) METHODS(n)
 	hdr := make([]byte, 2)
 	if _, err := io.ReadFull(br, hdr); err != nil {
 		return
@@ -264,17 +278,17 @@ func handleSocks5(br *bufio.Reader, c net.Conn, sshc *ssh.Client) {
 	if _, err := io.ReadFull(br, make([]byte, nMethods)); err != nil {
 		return
 	}
-	// 回应: 无需认证
+	// reply: no auth required
 	if _, err := c.Write([]byte{0x05, 0x00}); err != nil {
 		return
 	}
 
-	// 请求: VER CMD RSV ATYP DST.ADDR DST.PORT
+	// request: VER CMD RSV ATYP DST.ADDR DST.PORT
 	head := make([]byte, 4)
 	if _, err := io.ReadFull(br, head); err != nil {
 		return
 	}
-	if head[1] != 0x01 { // 只支持 CONNECT
+	if head[1] != 0x01 { // only CONNECT supported
 		c.Write([]byte{0x05, 0x07, 0x00, 0x01, 0, 0, 0, 0, 0, 0})
 		return
 	}
@@ -287,7 +301,7 @@ func handleSocks5(br *bufio.Reader, c net.Conn, sshc *ssh.Client) {
 			return
 		}
 		host = net.IP(buf).String()
-	case 0x03: // 域名
+	case 0x03: // domain name
 		l, err := br.ReadByte()
 		if err != nil {
 			return
@@ -316,8 +330,11 @@ func handleSocks5(br *bufio.Reader, c net.Conn, sshc *ssh.Client) {
 
 	remote, err := sshc.Dial("tcp", target)
 	if err != nil {
-		log.Printf("SOCKS5 -> %s 失败: %v", target, err)
+		log.Printf("SOCKS5 -> %s failed: %v", target, err)
 		c.Write([]byte{0x05, 0x05, 0x00, 0x01, 0, 0, 0, 0, 0, 0})
+		if isSSHTransportDead(err) {
+			log.Fatalf("SSH transport dead, exiting: %v", err)
+		}
 		return
 	}
 	defer remote.Close()
@@ -336,7 +353,7 @@ func handleHTTP(br *bufio.Reader, c net.Conn, sshc *ssh.Client) {
 		return
 	}
 	if req.Method == http.MethodConnect {
-		// HTTPS 隧道
+		// HTTPS tunnel
 		target := req.URL.Host
 		if !strings.Contains(target, ":") {
 			target += ":443"
@@ -344,6 +361,9 @@ func handleHTTP(br *bufio.Reader, c net.Conn, sshc *ssh.Client) {
 		remote, err := sshc.Dial("tcp", target)
 		if err != nil {
 			fmt.Fprintf(c, "HTTP/1.1 502 Bad Gateway\r\n\r\n")
+			if isSSHTransportDead(err) {
+				log.Fatalf("SSH transport dead, exiting: %v", err)
+			}
 			return
 		}
 		defer remote.Close()
@@ -353,7 +373,7 @@ func handleHTTP(br *bufio.Reader, c net.Conn, sshc *ssh.Client) {
 		return
 	}
 
-	// 普通 HTTP 转发
+	// plain HTTP forward
 	if req.URL.Host == "" {
 		fmt.Fprintf(c, "HTTP/1.1 400 Bad Request\r\n\r\n")
 		return
@@ -365,11 +385,14 @@ func handleHTTP(br *bufio.Reader, c net.Conn, sshc *ssh.Client) {
 	remote, err := sshc.Dial("tcp", host)
 	if err != nil {
 		fmt.Fprintf(c, "HTTP/1.1 502 Bad Gateway\r\n\r\n")
+		if isSSHTransportDead(err) {
+			log.Fatalf("SSH transport dead, exiting: %v", err)
+		}
 		return
 	}
 	defer remote.Close()
 
-	// 重写为 origin-form,并剥离逐跳头
+	// rewrite to origin-form, strip hop-by-hop headers
 	req.RequestURI = ""
 	req.URL.Scheme = ""
 	req.URL.Host = ""
@@ -379,7 +402,7 @@ func handleHTTP(br *bufio.Reader, c net.Conn, sshc *ssh.Client) {
 	if err := req.Write(remote); err != nil {
 		return
 	}
-	// 双向转发后续字节(包含响应)
+	// bidirectional forward (including response)
 	pipe(c, remote, nil)
 }
 
@@ -395,10 +418,10 @@ func stripHopByHop(h http.Header) {
 	}
 }
 
-// ---------- 双向转发 ----------
+// ---------- Bidirectional forward ----------
 
-// pipe 在 c <-> remote 间转发。br 是带缓冲的客户端读端(可能已读入字节),
-// 需要把缓冲里残留的数据也一并送往 remote。
+// pipe forwards between c <-> remote. br is the buffered client reader
+// (may have buffered bytes), any leftover data must also be sent to remote.
 func pipe(c net.Conn, remote net.Conn, br *bufio.Reader) {
 	done := make(chan struct{}, 2)
 	go func() {
